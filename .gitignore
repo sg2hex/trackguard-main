@@ -1,0 +1,13 @@
+# Node dependencies
+node_modules/
+
+# Environment variables (mga passwords/keys)
+.env
+
+# Logs & temp files
+npm-debug.log*
+*.log
+
+# Operating System files
+.DS_Store
+Thumbs.db

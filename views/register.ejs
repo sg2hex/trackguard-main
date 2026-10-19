@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrackGuard - Register Account</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+                  #f1f5f9;
+      background-image: radial-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+      background-size: 24px 24px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      width: 100%;
+      max-width: 420px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: 1px solid #e1e8ed;
+    }
+
+    .login-header {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #ffffff;
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      border-radius: 50%;
+      margin-bottom: 12px;
+    }
+
+    .login-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .login-header p {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    .login-body {
+      padding: 32px 28px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      color: #1e293b;
+      background-color: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      outline: none;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .form-control:focus {
+      background-color: #ffffff;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .password-input-wrapper {
+      position: relative;
+    }
+
+    .password-input-wrapper .form-control {
+      padding-right: 64px;
+    }
+
+    .password-toggle {
+      position: absolute;
+      top: 50%;
+      right: 12px;
+      transform: translateY(-50%);
+      padding: 4px;
+      border: 0;
+      background: transparent;
+      color: #2563eb;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .password-toggle:focus-visible {
+      border-radius: 4px;
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+      background-color: #2563eb;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-submit:active {
+      transform: scale(0.99);
+    }
+
+    .error-notice {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #ef4444;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .login-footer a {
+      font-size: 13px;
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .login-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .security-notice {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 16px;
+    }
+
+    .security-notice svg {
+      width: 14px;
+      height: 14px;
+      stroke: #10b981;
+    }
+
+    .password-help {
+      margin-top: 6px;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-card">
+    <div class="login-header">
+      <div class="brand-badge">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M8 11l4-2 4 2v4l-4 2-4-2v-4z"/>
+          <polyline points="8 11 12 13 16 11"/>
+          <line x1="12" y1="13" x2="12" y2="17"/>
+        </svg>
+      </div>
+      <h1>TrackGuard</h1>
+      <p>Role-Based Asset & Inventory System</p>
+    </div>
+
+    <div class="login-body">
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error-notice"><%= error %></div>
+      <% } %>
+
+      <form action="/register" method="POST">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            class="form-control" 
+            placeholder="name@organization.com" 
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-input-wrapper">
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="6-12 characters" 
+              minlength="6"
+              maxlength="12"
+              pattern="(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[^A-Za-z0-9\s])\S{6,12}"
+              title="Use 6-12 characters with a number, uppercase letter, lowercase letter, and special character. Do not use spaces."
+              autocomplete="new-password"
+              required
+            >
+            <button class="password-toggle" type="button" aria-controls="password" aria-pressed="false">Show</button>
+          </div>
+          <p class="password-help">Use 6-12 characters, including a number, uppercase and lowercase letters, and a special character. No spaces.</p>
+        </div>
+
+        <button type="submit" class="btn-submit">Sign Up</button>
+
+        <div class="login-footer">
+          <a href="/login">Already have an account? Sign in here</a>
+        </div>
+
+        <div class="security-notice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Protected by Session Security & Role Access Controls
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll(".password-toggle").forEach((toggle) => {
+      toggle.addEventListener("click", () => {
+        const passwordInput = document.getElementById(toggle.getAttribute("aria-controls"));
+        const isVisible = passwordInput.type === "text";
+        passwordInput.type = isVisible ? "password" : "text";
+        toggle.textContent = isVisible ? "Show" : "Hide";
+        toggle.setAttribute("aria-pressed", String(!isVisible));
+      });
+    });
+  </script>
+
+</body>
+</html>

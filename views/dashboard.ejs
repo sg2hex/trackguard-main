@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head link rel="icon" type="image/png" href="https://ibb.co/xK7Z3gVT">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrackGuard - Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background-color: #e9eef5;
+      background-image:
+        radial-gradient(ellipse at 8% 8%, rgba(147, 197, 253, 0.3), transparent 38%),
+        radial-gradient(ellipse at 88% 82%, rgba(153, 246, 228, 0.2), transparent 36%),
+        radial-gradient(rgba(100, 116, 139, 0.16) 1px, transparent 1px),
+        linear-gradient(135deg, #eef2f7 0%, #e2e8f0 52%, #edf1f6 100%);
+      background-size: auto, auto, 22px 22px, auto;
+      background-attachment: fixed;
+    }
+
+    /* Sidebar Layout */
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(237, 242, 248, 0.97) 100%);
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px 16px;
+      position: fixed;
+      height: 100vh;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 32px;
+      padding-left: 4px;
+    }
+
+    /* Matching Circular Blue Logo Badge from Login */
+    .brand-icon-wrapper {
+      width: 36px;
+      height: 36px;
+      background: #2563eb;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+      flex-shrink: 0;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-divider {
+      height: 1px;
+      margin: 4px 12px;
+      border: 0;
+      background: linear-gradient(90deg, transparent, #94a3b8, transparent);
+    }
+
+    .system-nav-list {
+      max-height: 114px;
+      overflow-y: auto;
+      margin: -4px 4px 4px 22px;
+      padding: 2px 4px 2px 8px;
+      border-left: 1px solid #cbd5e1;
+      scrollbar-color: #94a3b8 transparent;
+      scrollbar-width: thin;
+    }
+
+    .system-nav-list[hidden] {
+      display: none;
+    }
+
+    .system-search-input {
+      width: calc(100% - 8px);
+      margin: 0 4px 6px;
+      padding: 7px 9px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #f8fafc;
+      color: #334155;
+      font-size: 12px;
+    }
+
+    .system-nav-link,
+    .system-nav-empty {
+      display: block;
+      overflow: hidden;
+      padding: 8px;
+      border-radius: 6px;
+      color: #475569;
+      font-size: 12px;
+      line-height: 18px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .system-nav-link {
+      text-decoration: none;
+      transition: background-color 180ms ease, color 180ms ease;
+    }
+
+    .system-nav-link:hover,
+    .system-nav-link:focus-visible {
+      background: #dbeafe;
+      color: #1d4ed8;
+      outline: none;
+    }
+
+    .system-nav-link.active {
+      background: #1d4ed8;
+      color: #ffffff;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      transition: background-color 180ms ease, color 180ms ease;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .nav-item:hover {
+      background-color: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .nav-item.active {
+      background-color: #1d4ed8;
+      color: #ffffff;
+    }
+
+    .nav-item.active:hover {
+      background-color: #1e3a8a;
+      color: #ffffff;
+    }
+
+    .workspace-link {
+      display: block;
+      margin: 14px 0 0;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .user-profile {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .profile-trigger {
+      width: 100%;
+      padding: 6px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .profile-trigger:hover,
+    .profile-trigger:focus-visible {
+      background: #f1f5f9;
+    }
+
+    .profile-trigger:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      overflow: hidden;
+      background-color: #2563eb;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .profile-name {
+      overflow: hidden;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-logout-link {
+      color: #ef4444;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      align-self: flex-start;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      margin-left: 240px;
+      flex: 1;
+      padding: 32px 40px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 24px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Card Container */
+    .card {
+      background: linear-gradient(145deg, #f8fafc 0%, #edf2f8 100%);
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+
+    .system-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .search-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .search-controls input,
+    .search-controls select {
+      min-width: 180px;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #f8fafc;
+      color: #334155;
+      font-size: 13px;
+    }
+
+    .search-empty {
+      grid-column: 1 / -1;
+      display: none;
+      padding: 20px;
+      color: #64748b;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .system-card {
+      padding: 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #f8fafc 0%, #eaf0f7 100%);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .system-card h2 {
+      margin-bottom: 8px;
+      color: #0f172a;
+      font-size: 17px;
+    }
+
+    .system-card p {
+      margin: 8px 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .system-card a,
+    .system-card button {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 9px 12px;
+      border: 0;
+      border-radius: 6px;
+      background: #2563eb;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .join-code {
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #0f172a;
+      font-family: monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .request-list {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .request-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 0;
+      color: #334155;
+      font-size: 13px;
+    }
+
+    .request-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .request-actions button {
+      margin-top: 0;
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+
+    .request-actions .reject {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .empty-state {
+      padding: 24px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      color: #64748b;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .notice-banner {
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 14px;
+    }
+
+    .system-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .system-header h1 {
+      margin-bottom: 6px;
+      color: #0f172a;
+      font-size: 24px;
+    }
+
+    .system-header p {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .workspace-section {
+      margin-bottom: 28px;
+    }
+
+    .workspace-section h2 {
+      margin-bottom: 14px;
+      color: #0f172a;
+      font-size: 18px;
+    }
+
+    .asset-edit-form {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(110px, 1fr)) auto;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .asset-edit-form input,
+    .asset-edit-form select {
+      min-width: 0;
+      padding: 7px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .form-note {
+      margin: 8px 0 0 24px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .about-copy {
+      max-width: 800px;
+      padding: 24px;
+      color: #475569;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .about-copy h2 {
+      margin: 0 0 12px;
+      color: #0f172a;
+      font-size: 20px;
+    }
+
+    .about-copy p + p {
+      margin-top: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .asset-edit-form {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* Form Design */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .form-control {
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .btn-submit-asset {
+      background-color: #2563eb;
+      color: #ffffff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 0 24px 24px;
+    }
+
+    /* Table Design */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background-color: #f8fafc;
+      padding: 12px 16px;
+      font-weight: 600;
+      color: #64748b;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+      color: #334155;
+    }
+
+    .tag-badge {
+      background-color: #eff6ff;
+      color: #2563eb;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .status-badge {
+      background-color: #dcfce7;
+      color: #15803d;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .inline-form {
+      display: inline-flex;
+      gap: 6px;
+    }
+
+    .input-sm {
+      padding: 6px 8px;
+      font-size: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .btn-update {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-delete {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Pagination Footer Bar */
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-page {
+      padding: 6px 12px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      min-width: 34px;
+      text-align: center;
+      user-select: none;
+    }
+
+    .btn-page:hover:not(.disabled) {
+      background-color: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .btn-page.active {
+      background-color: #2563eb !important;
+      color: #ffffff !important;
+      border-color: #2563eb !important;
+    }
+
+    .btn-page.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background-color: #f8fafc;
+    }
+
+    .session-timeout-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .session-timeout-overlay[hidden] {
+      display: none;
+    }
+
+    .session-timeout-dialog {
+      width: 100%;
+      max-width: 400px;
+      padding: 28px;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+      text-align: center;
+    }
+
+    .session-timeout-dialog h2 {
+      margin-bottom: 10px;
+      color: #0f172a;
+      font-size: 20px;
+    }
+
+    .session-timeout-dialog p {
+      margin-bottom: 22px;
+      color: #64748b;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .session-timeout-dialog button {
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 6px;
+      background: #2563eb;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .confirmation-dialog {
+      width: 100%;
+      max-width: 420px;
+      padding: 28px;
+      border-radius: 12px;
+      background: #f8fafc;
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25);
+      text-align: left;
+    }
+
+    .confirmation-dialog h2 {
+      margin-bottom: 10px;
+      color: #0f172a;
+      font-size: 20px;
+    }
+
+    .confirmation-dialog p {
+      margin-bottom: 22px;
+      color: #475569;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .confirmation-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .confirmation-actions button {
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .confirmation-cancel {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .confirmation-danger {
+      background: #dc2626;
+      color: #ffffff;
+    }
+
+    .system-delete-button {
+      margin-left: 8px !important;
+      background: #dc2626 !important;
+    }
+
+    .profile-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .profile-modal[hidden] {
+      display: none;
+    }
+
+    .profile-modal-content {
+      width: 100%;
+      max-width: 420px;
+      padding: 28px;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+    }
+
+    .profile-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .profile-modal-header h2 {
+      color: #0f172a;
+      font-size: 20px;
+    }
+
+    .profile-modal-close {
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .profile-modal-field {
+      margin-bottom: 18px;
+    }
+
+    .profile-modal-field label {
+      display: block;
+      margin-bottom: 6px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .profile-modal-field input[type="text"],
+    .profile-modal-field input[type="file"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 14px;
+    }
+
+    .profile-preview {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      border-radius: 50%;
+      background: #2563eb;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .profile-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-modal-help {
+      margin-top: 6px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .profile-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .profile-modal-actions button {
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .profile-modal-cancel {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .profile-modal-save {
+      background: #2563eb;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left Sidebar Navigation -->
+  <div class="sidebar">
+    <div>
+      <div class="brand-header">
+        <!-- Exact Matching Icon from Login -->
+        <div class="brand-icon-wrapper">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M8 11l4-2 4 2v4l-4 2-4-2v-4z"/>
+            <polyline points="8 11 12 13 16 11"/>
+            <line x1="12" y1="13" x2="12" y2="17"/>
+          </svg>
+        </div>
+        TrackGuard
+      </div>
+
+      <div class="nav-menu">
+        <button class="nav-item" onclick="switchTab('createTab', this)">
+          ➕ Create inventory
+        </button>
+        <button id="mySystemsToggle" class="nav-item" type="button" aria-expanded="false" aria-controls="mySystemsList" onclick="switchTab('createdTab', this); toggleMySystemsList()">
+          🗂️ My inventory systems
+          <span aria-hidden="true" style="margin-left:auto;">⌄</span>
+        </button>
+        <div id="mySystemsList" class="system-nav-list" hidden>
+          <% if (createdSystems.length) { %>
+            <input id="sidebarSystemSearch" class="system-search-input" type="search" placeholder="Search systems" aria-label="Search created inventory systems">
+            <% createdSystems.forEach(system => { %>
+              <a class="system-nav-link <%= selectedSystem && selectedSystem.id === system.id ? 'active' : '' %>" data-system-search-name="<%= system.name.toLowerCase() %>" href="/dashboard?system=<%= system.id %>" title="<%= system.name %>"><%= system.name %></a>
+            <% }) %>
+            <span id="sidebarSystemSearchEmpty" class="system-nav-empty" hidden>No matching systems</span>
+          <% } else { %>
+            <span class="system-nav-empty">No systems created yet</span>
+          <% } %>
+        </div>
+        <hr class="nav-divider">
+        <button class="nav-item" onclick="switchTab('joinTab', this)">
+          🔑 Join inventory system
+        </button>
+        <button class="nav-item" onclick="switchTab('joinedTab', this)">
+          👥 Joined asset systems
+        </button>
+        <hr class="nav-divider">
+        <button class="nav-item <%= selectedSystem ? '' : 'active' %>" onclick="switchTab('aboutTab', this)">
+          ℹ️ About Us
+        </button>
+      </div>
+      <% if (selectedSystem) { %>
+        <a class="workspace-link" href="/dashboard">← Back to system lists</a>
+      <% } %>
+    </div>
+
+    <!-- Bottom User Profile Footer -->
+    <div class="user-profile">
+      <button id="openProfileModal" class="profile-trigger" type="button" aria-haspopup="dialog" aria-controls="profileModal">
+        <span class="profile-info">
+          <span class="avatar">
+            <% if (profilePicture) { %>
+              <img src="<%= profilePicture %>" alt="">
+            <% } else { %>
+              <%= profileInitials %>
+            <% } %>
+          </span>
+          <span class="profile-text">
+            <span class="profile-name"><%= profileName %></span>
+          </span>
+        </span>
+      </button>
+      <button id="openLogoutConfirm" class="btn-logout-link" type="button">Logout</button>
+    </div>
+  </div>
+
+  <div id="profileModal" class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" hidden>
+    <div class="profile-modal-content">
+      <div class="profile-modal-header">
+        <h2 id="profileModalTitle">Edit Profile</h2>
+        <button id="closeProfileModal" class="profile-modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <form action="/profile" method="POST" enctype="multipart/form-data">
+        <div class="profile-modal-field">
+          <label for="profileName">Profile Name</label>
+          <input type="text" id="profileName" name="profileName" value="<%= profileName %>" minlength="1" maxlength="40" required>
+        </div>
+        <div class="profile-modal-field">
+          <label for="profilePicture">Profile Picture</label>
+          <div id="profilePreview" class="profile-preview">
+            <% if (profilePicture) { %>
+              <img src="<%= profilePicture %>" alt="">
+            <% } else { %>
+              <%= profileInitials %>
+            <% } %>
+          </div>
+          <input type="file" id="profilePicture" name="profilePicture" accept="image/jpeg,image/png,image/webp">
+          <p class="profile-modal-help">JPG, PNG, or WebP; maximum 2 MB.</p>
+        </div>
+        <div class="profile-modal-actions">
+          <button id="cancelProfileModal" class="profile-modal-cancel" type="button">Cancel</button>
+          <button class="profile-modal-save" type="submit">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main View Area -->
+  <div class="main-content">
+    <% if (notice) { %><div class="notice-banner"><%= notice %></div><% } %>
+
+    <% if (selectedSystem) { %>
+      <section id="systemWorkspace" class="tab-content active">
+        <div class="system-header">
+          <div>
+            <h1><%= selectedSystem.name %></h1>
+            <p><%= isSystemAdmin ? 'Administrator workspace' : 'Staff workspace — showing only assets assigned to you' %></p>
+          </div>
+          <% if (isSystemAdmin) { %>
+            <div>Staff join code: <span class="join-code"><%= selectedSystem.inviteCode %></span></div>
+          <% } else if (leaveRequested) { %>
+            <div class="form-note">Your leave request is awaiting administrator approval.</div>
+          <% } else { %>
+            <form action="/systems/<%= selectedSystem.id %>/leave-request" method="POST">
+              <button type="submit" class="btn-delete">Request to leave system</button>
+            </form>
+          <% } %>
+        </div>
+
+        <% if (isSystemAdmin) { %>
+          <section class="workspace-section card">
+            <h2 style="padding: 20px 24px 0;">Add an asset</h2>
+            <form action="/add-asset" method="POST">
+              <input type="hidden" name="systemId" value="<%= selectedSystem.id %>">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="newAssetName">Asset Name / Model</label>
+                  <input type="text" id="newAssetName" name="name" class="form-control" maxlength="120" required>
+                </div>
+                <div class="form-group">
+                  <label for="newAssetAssignedTo">Assign to staff</label>
+                  <select id="newAssetAssignedTo" name="assignedTo" class="form-control">
+                    <option value="">Unassigned</option>
+                    <% staff.forEach(member => { %>
+                      <option value="<%= member.id %>"><%= member.name %></option>
+                    <% }) %>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="newAssetStatus">Status</label>
+                  <input type="text" id="newAssetStatus" name="status" class="form-control" value="Active" maxlength="40" required>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label for="newAssetDescription">Asset Description</label>
+                  <input type="text" id="newAssetDescription" name="description" class="form-control" maxlength="500">
+                </div>
+              </div>
+              <button type="submit" class="btn-submit-asset">Save Asset</button>
+            </form>
+          </section>
+        <% } %>
+
+        <section class="workspace-section">
+          <h2>Assets</h2>
+          <div class="card">
+          <div class="search-controls" style="padding:16px 16px 0;">
+            <input id="assetIdSearch" type="search" placeholder="Search asset ID" aria-label="Search asset ID">
+            <input id="assetModelSearch" type="search" placeholder="Search model or name" aria-label="Search asset model or name">
+            <% if (isSystemAdmin) { %>
+              <select id="assetAssigneeSearch" aria-label="Filter by assigned staff">
+                <option value="">All staff</option>
+                <option value="unassigned">Unassigned</option>
+                <% staff.forEach(member => { %>
+                  <option value="<%= member.id %>"><%= member.name %></option>
+                <% }) %>
+              </select>
+            <% } %>
+          </div>
+          <table>
+              <thead>
+                <tr>
+                  <th>System ID</th>
+                  <th>Asset Name</th>
+                  <th>Description</th>
+                  <th>Assigned Staff</th>
+                  <th>Status</th>
+                  <th>Date Modified</th>
+                  <% if (isSystemAdmin) { %><th>Actions</th><% } %>
+                </tr>
+              </thead>
+              <tbody id="assetTableBody">
+                <% if (assets.length) { %>
+                  <% assets.forEach(asset => { %>
+                    <tr class="asset-row" data-asset-id="<%= asset._id.toString().toLowerCase() %>" data-asset-short-id="<%= asset._id.toString().slice(-6).toLowerCase() %>" data-asset-model="<%= `${asset.name} ${asset.description}`.toLowerCase() %>" data-asset-assignee="<%= asset.assignedTo ? asset.assignedTo._id.toString() : 'unassigned' %>">
+                      <td><span class="tag-badge">#TG-<%= asset._id.toString().slice(-6) %></span></td>
+                      <% if (isSystemAdmin) { %>
+                        <td colspan="6">
+                          <div style="display:grid;grid-template-columns:minmax(600px,1fr) auto;gap:8px;align-items:center;">
+                            <form action="/update-asset" method="POST" class="asset-edit-form">
+                              <input type="hidden" name="systemId" value="<%= selectedSystem.id %>">
+                              <input type="hidden" name="assetId" value="<%= asset._id %>">
+                              <input type="text" name="name" value="<%= asset.name %>" aria-label="Asset name" maxlength="120" required>
+                              <input type="text" name="description" value="<%= asset.description %>" aria-label="Description" maxlength="500">
+                              <select name="assignedTo" aria-label="Assigned staff">
+                                <option value="">Unassigned</option>
+                                <% staff.forEach(member => { %>
+                                  <option value="<%= member.id %>" <%= asset.assignedTo && asset.assignedTo._id.toString() === member.id ? 'selected' : '' %>><%= member.name %></option>
+                                <% }) %>
+                              </select>
+                              <input type="text" name="status" value="<%= asset.status || 'Active' %>" aria-label="Status" maxlength="40" required>
+                              <span><%= new Date(asset.updatedAt).toLocaleString() %></span>
+                              <button type="submit" class="btn-update">Save</button>
+                            </form>
+                            <form action="/delete-asset" method="POST" onsubmit="return confirm('Delete this asset?')">
+                              <input type="hidden" name="systemId" value="<%= selectedSystem.id %>">
+                              <input type="hidden" name="assetId" value="<%= asset._id %>">
+                              <button type="submit" class="btn-delete">Delete</button>
+                            </form>
+                          </div>
+                        </td>
+                      <% } else { %>
+                        <td><strong><%= asset.name %></strong></td>
+                        <td><%= asset.description %></td>
+                        <td><%= asset.assignedTo && asset.assignedTo.profileName ? asset.assignedTo.profileName : profileName %></td>
+                        <td><span class="status-badge"><%= asset.status || 'Active' %></span></td>
+                        <td><%= new Date(asset.updatedAt).toLocaleString() %></td>
+                      <% } %>
+                    </tr>
+                  <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="<%= isSystemAdmin ? 7 : 6 %>" style="text-align:center;color:#94a3b8;padding:24px;">
+                      <%= isSystemAdmin ? 'No assets in this system yet.' : 'No assets have been assigned to you.' %>
+                    </td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+            <div id="assetSearchEmpty" class="search-empty">No assets match your search.</div>
+            <div class="pagination-bar">
+              <div id="paginationSummary">Showing 0 of 0 assets</div>
+              <div class="pagination-controls" id="paginationButtons"></div>
+            </div>
+          </div>
+        </section>
+
+        <% if (isSystemAdmin) { %>
+          <section class="workspace-section">
+            <h2>Audit Trail</h2>
+            <div class="card">
+              <table>
+                <thead><tr><th>Action</th><th>Performed By</th><th>Details</th><th>Timestamp</th></tr></thead>
+                <tbody id="auditTableBody">
+                  <% if (auditLogs.length) { %>
+                    <% auditLogs.forEach(log => { %>
+                      <tr class="audit-row"><td><strong><%= log.action %></strong></td><td><%= log.performedBy %></td><td><%= log.details %></td><td><%= new Date(log.timestamp).toLocaleString() %></td></tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">No logs found.</td></tr>
+                  <% } %>
+                </tbody>
+              </table>
+              <div class="pagination-bar">
+                <div id="auditPaginationSummary">Showing 0 of 0 audit logs</div>
+                <div class="pagination-controls" id="auditPaginationButtons"></div>
+              </div>
+            </div>
+          </section>
+        <% } %>
+      </section>
+    <% } else { %>
+      <section id="aboutTab" class="tab-content active">
+        <h1 class="page-title">About Us</h1>
+        <div class="card about-copy">
+          <h2>About TrackGuard</h2>
+          <p>TrackGuard is an IT asset management and security system designed to help organizations monitor, manage, and protect their valuable IT resources. It provides a centralized platform for tracking equipment, managing asset records, and improving accountability within the organization.</p>
+          <p>We aim to make asset management more organized, efficient, and secure by reducing manual recordkeeping and providing better visibility into the organization's resources.</p>
+
+          <h2>Our Mission</h2>
+          <p>Our mission is to provide a reliable and user-friendly system that helps organizations manage their IT assets efficiently, strengthen security, and maintain accurate asset records.</p>
+
+          <h2>Our Vision</h2>
+          <p>Our vision is to become a trusted asset management solution that promotes better organization, accountability, and security through technology.</p>
+
+          <h2>What We Do</h2>
+          <p>TrackGuard helps organizations:</p>
+          <ul>
+            <li><strong>Track IT Assets</strong> — Maintain organized records of computers, projectors, laboratory equipment, and other company resources.</li>
+            <li><strong>Manage Asset Records</strong> — Keep asset information updated and accessible in one centralized system.</li>
+            <li><strong>Improve Accountability</strong> — Help administrators and staff monitor asset assignments and responsibilities.</li>
+            <li><strong>Strengthen Security</strong> — Support better asset oversight and more organized management practices.</li>
+            <li><strong>Simplify Management</strong> — Reduce paperwork and make asset-related tasks easier to handle.</li>
+          </ul>
+
+          <h2>Our Commitment</h2>
+          <p>At TrackGuard, we believe that effective asset management is an important part of organizational security. We are committed to developing practical technology solutions that help organizations protect their resources, improve efficiency, and maintain better control over their IT assets.</p>
+
+          <p><strong>TrackGuard — Keeping Assets Organized. Keeping Resources Secure.</strong></p>
+        </div>
+      </section>
+
+      <section id="createdTab" class="tab-content">
+        <h1 class="page-title">My inventory systems</h1>
+        <% if (createdSystems.length) { %>
+          <div class="search-controls">
+            <input class="system-card-search" type="search" data-target="createdSystemCards" placeholder="Search inventory systems" aria-label="Search created inventory systems">
+          </div>
+          <div class="system-list">
+            <% createdSystems.forEach(system => { %>
+              <article class="system-card searchable-system-card" data-system-name="<%= system.name.toLowerCase() %>">
+                <h2><%= system.name %></h2>
+                <p>Staff join code: <span class="join-code"><%= system.inviteCode %></span></p>
+                <a href="/dashboard?system=<%= system.id %>">Open system</a>
+                <button
+                  class="system-delete-button"
+                  type="button"
+                  data-system-id="<%= system.id %>"
+                  data-system-name="<%= system.name %>"
+                  aria-haspopup="dialog"
+                  aria-controls="deleteSystemModal"
+                >Delete system</button>
+                <% if (system.pendingMembers.length) { %>
+                  <div class="request-list">
+                    <strong>Staff join requests</strong>
+                    <% system.pendingMembers.forEach(member => { %>
+                      <div class="request-row">
+                        <span><%= member.name %> (<%= member.email %>)</span>
+                        <span class="request-actions">
+                          <form action="/systems/<%= system.id %>/members/<%= member.id %>/approve" method="POST"><button type="submit">Approve</button></form>
+                          <form action="/systems/<%= system.id %>/members/<%= member.id %>/reject" method="POST"><button class="reject" type="submit">Reject</button></form>
+                        </span>
+                      </div>
+                    <% }) %>
+                  </div>
+                <% } %>
+                <% if (system.leaveRequests && system.leaveRequests.length) { %>
+                  <div class="request-list">
+                    <strong>Staff leave requests</strong>
+                    <% system.leaveRequests.forEach(member => { %>
+                      <div class="request-row">
+                        <span><%= member.name %> (<%= member.email %>)</span>
+                        <span class="request-actions">
+                          <form action="/systems/<%= system.id %>/members/<%= member.id %>/approve-leave" method="POST"><button type="submit">Approve</button></form>
+                          <form action="/systems/<%= system.id %>/members/<%= member.id %>/reject-leave" method="POST"><button class="reject" type="submit">Reject</button></form>
+                        </span>
+                      </div>
+                    <% }) %>
+                  </div>
+                <% } %>
+              </article>
+            <% }) %>
+            <div id="createdSystemSearchEmpty" class="search-empty">No inventory systems match your search.</div>
+          </div>
+        <% } else { %>
+          <div class="empty-state">You haven’t created any inventory systems yet.</div>
+        <% } %>
+      </section>
+
+      <section id="createTab" class="tab-content">
+        <h1 class="page-title">Create asset inventory system</h1>
+        <div class="card">
+          <form action="/systems" method="POST">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="systemName">Inventory system name</label>
+                <input type="text" id="systemName" name="name" class="form-control" minlength="2" maxlength="80" placeholder="e.g. PHINMA Education Assets" required>
+              </div>
+            </div>
+            <p class="form-note">You will be the administrator. Staff join using a code and need your approval.</p>
+            <button type="submit" class="btn-submit-asset">Create system</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="joinTab" class="tab-content">
+        <h1 class="page-title">Join asset inventory system</h1>
+        <div class="card">
+          <form action="/systems/join" method="POST">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="inviteCode">System join code</label>
+                <input type="text" id="inviteCode" name="inviteCode" class="form-control" maxlength="20" autocomplete="off" required>
+              </div>
+            </div>
+            <p class="form-note">Your request will be sent to that system’s administrator. You’ll see its assets only after approval.</p>
+            <button type="submit" class="btn-submit-asset">Request to join</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="joinedTab" class="tab-content">
+        <h1 class="page-title">Joined asset systems</h1>
+        <% if (joinedSystems.length) { %>
+          <div class="search-controls">
+            <input class="system-card-search" type="search" data-target="joinedSystemCards" placeholder="Search joined systems" aria-label="Search joined inventory systems">
+          </div>
+          <div class="system-list">
+            <% joinedSystems.forEach(system => { %>
+              <article class="system-card searchable-system-card" data-system-name="<%= system.name.toLowerCase() %>">
+                <h2><%= system.name %></h2>
+                <p>Staff member</p>
+                <a href="/dashboard?system=<%= system.id %>">Open assigned assets</a>
+                <% if (system.leaveRequested) { %>
+                  <p class="form-note">Leave request pending administrator approval.</p>
+                <% } else { %>
+                  <form action="/systems/<%= system.id %>/leave-request" method="POST">
+                    <button type="submit" class="btn-delete">Request to leave system</button>
+                  </form>
+                <% } %>
+              </article>
+            <% }) %>
+            <div id="joinedSystemSearchEmpty" class="search-empty">No joined systems match your search.</div>
+          </div>
+        <% } else { %>
+          <div class="empty-state">You haven’t joined any systems yet.</div>
+        <% } %>
+        <% if (pendingSystems.length) { %>
+          <h2 style="margin:24px 0 14px;color:#0f172a;font-size:18px;">Pending requests</h2>
+          <div class="system-list">
+            <% pendingSystems.forEach(system => { %>
+              <article class="system-card"><h2><%= system.name %></h2><p>Your request is waiting for administrator approval.</p></article>
+            <% }) %>
+          </div>
+        <% } %>
+      </section>
+    <% } %>
+  </div>
+
+  <div id="deleteSystemModal" class="session-timeout-overlay" role="dialog" aria-modal="true" aria-labelledby="deleteSystemTitle" hidden>
+    <div class="confirmation-dialog">
+      <h2 id="deleteSystemTitle">Delete inventory system?</h2>
+      <p id="deleteSystemMessage"></p>
+      <form id="deleteSystemForm" method="POST">
+        <div class="confirmation-actions">
+          <button id="cancelSystemDelete" class="confirmation-cancel" type="button">Cancel</button>
+          <button class="confirmation-danger" type="submit">Delete system</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="systemDeletedModal" class="session-timeout-overlay" role="dialog" aria-modal="true" aria-labelledby="systemDeletedTitle" <%= showDeletedNotice ? '' : 'hidden' %>>
+    <div class="confirmation-dialog">
+      <h2 id="systemDeletedTitle">Inventory system deleted</h2>
+      <p>The inventory system and its related data have been deleted.</p>
+      <div class="confirmation-actions">
+        <button id="dismissSystemDeleted" class="confirmation-danger" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="logoutConfirmModal" class="session-timeout-overlay" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle" hidden>
+    <div class="confirmation-dialog">
+      <h2 id="logoutConfirmTitle">Log out?</h2>
+      <p>Are you sure you want to log out of TrackGuard?</p>
+      <form action="/logout" method="POST">
+        <div class="confirmation-actions">
+          <button id="cancelLogout" class="confirmation-cancel" type="button">Cancel</button>
+          <button class="confirmation-danger" type="submit">Log out</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="sessionTimeoutModal" class="session-timeout-overlay" role="dialog" aria-modal="true" aria-labelledby="sessionTimeoutTitle" hidden>
+    <div class="session-timeout-dialog">
+      <h2 id="sessionTimeoutTitle">Session expired</h2>
+      <p>Your session has expired. Please sign in again to continue.</p>
+      <button id="sessionTimeoutLogin" type="button">Return to login</button>
+    </div>
+  </div>
+
+  <script>
+    const systemDeletedModal = document.getElementById("systemDeletedModal");
+    const dismissSystemDeleted = document.getElementById("dismissSystemDeleted");
+    if (!systemDeletedModal.hidden) dismissSystemDeleted.focus();
+    dismissSystemDeleted.addEventListener("click", () => {
+      systemDeletedModal.hidden = true;
+      window.history.replaceState(null, "", "/dashboard");
+    });
+
+    const deleteSystemModal = document.getElementById("deleteSystemModal");
+    const deleteSystemForm = document.getElementById("deleteSystemForm");
+    const deleteSystemMessage = document.getElementById("deleteSystemMessage");
+    const cancelSystemDelete = document.getElementById("cancelSystemDelete");
+    const logoutConfirmModal = document.getElementById("logoutConfirmModal");
+    const openLogoutConfirm = document.getElementById("openLogoutConfirm");
+    const cancelLogout = document.getElementById("cancelLogout");
+    let lastSystemDeleteButton;
+
+    document.querySelectorAll(".system-delete-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        lastSystemDeleteButton = button;
+        deleteSystemForm.action = `/systems/${encodeURIComponent(button.dataset.systemId)}/delete`;
+        deleteSystemMessage.textContent = `Deleting "${button.dataset.systemName}" permanently removes its assets, staff memberships, and audit history. This action cannot be undone.`;
+        deleteSystemModal.hidden = false;
+        cancelSystemDelete.focus();
+      });
+    });
+
+    cancelSystemDelete.addEventListener("click", () => {
+      deleteSystemModal.hidden = true;
+      if (lastSystemDeleteButton) lastSystemDeleteButton.focus();
+    });
+    deleteSystemModal.addEventListener("click", (event) => {
+      if (event.target === deleteSystemModal) cancelSystemDelete.click();
+    });
+    openLogoutConfirm.addEventListener("click", () => {
+      logoutConfirmModal.hidden = false;
+      cancelLogout.focus();
+    });
+    cancelLogout.addEventListener("click", () => {
+      logoutConfirmModal.hidden = true;
+      openLogoutConfirm.focus();
+    });
+    logoutConfirmModal.addEventListener("click", (event) => {
+      if (event.target === logoutConfirmModal) cancelLogout.click();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      if (!deleteSystemModal.hidden) cancelSystemDelete.click();
+      if (!logoutConfirmModal.hidden) cancelLogout.click();
+    });
+
+    const profileModal = document.getElementById("profileModal");
+    const openProfileModal = document.getElementById("openProfileModal");
+    const closeProfileModal = document.getElementById("closeProfileModal");
+    const cancelProfileModal = document.getElementById("cancelProfileModal");
+    const profilePictureInput = document.getElementById("profilePicture");
+    const profilePreview = document.getElementById("profilePreview");
+    let profilePreviewUrl;
+
+    function hideProfileModal() {
+      profileModal.hidden = true;
+      openProfileModal.focus();
+    }
+
+    openProfileModal.addEventListener("click", () => {
+      profileModal.hidden = false;
+      closeProfileModal.focus();
+    });
+    closeProfileModal.addEventListener("click", hideProfileModal);
+    cancelProfileModal.addEventListener("click", hideProfileModal);
+    profileModal.addEventListener("click", (event) => {
+      if (event.target === profileModal) hideProfileModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !profileModal.hidden) hideProfileModal();
+    });
+    profilePictureInput.addEventListener("change", () => {
+      const [file] = profilePictureInput.files;
+      if (!file) return;
+
+      if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl);
+      profilePreviewUrl = URL.createObjectURL(file);
+      profilePreview.replaceChildren();
+      const previewImage = document.createElement("img");
+      previewImage.src = profilePreviewUrl;
+      previewImage.alt = "Selected profile picture preview";
+      profilePreview.appendChild(previewImage);
+    });
+
+    function switchTab(tabId, element) {
+      const targetTab = document.getElementById(tabId);
+      if (!targetTab) {
+        window.location.assign(`/dashboard#${tabId}`);
+        return;
+      }
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+      targetTab.classList.add('active');
+      element.classList.add('active');
+    }
+
+    function toggleMySystemsList() {
+      const toggle = document.getElementById("mySystemsToggle");
+      const list = document.getElementById("mySystemsList");
+      const isExpanded = toggle.getAttribute("aria-expanded") === "true";
+      toggle.setAttribute("aria-expanded", String(!isExpanded));
+      list.hidden = isExpanded;
+    }
+
+    if (window.location.search.includes("system=")) {
+      const systemsToggle = document.getElementById("mySystemsToggle");
+      systemsToggle.setAttribute("aria-expanded", "true");
+      document.getElementById("mySystemsList").hidden = false;
+    }
+
+    const sidebarSystemSearch = document.getElementById("sidebarSystemSearch");
+    if (sidebarSystemSearch) {
+      sidebarSystemSearch.addEventListener("input", () => {
+        const query = sidebarSystemSearch.value.trim().toLowerCase();
+        const systemLinks = document.querySelectorAll("#mySystemsList .system-nav-link");
+        let visibleCount = 0;
+        systemLinks.forEach((link) => {
+          const matches = link.dataset.systemSearchName.includes(query);
+          link.hidden = !matches;
+          if (matches) visibleCount += 1;
+        });
+        document.getElementById("sidebarSystemSearchEmpty").hidden = visibleCount > 0;
+      });
+    }
+
+    document.querySelectorAll(".system-card-search").forEach((search) => {
+      search.addEventListener("input", () => {
+        const query = search.value.trim().toLowerCase();
+        const list = search.parentElement.nextElementSibling;
+        const cards = list.querySelectorAll(".searchable-system-card");
+        let visibleCount = 0;
+        cards.forEach((card) => {
+          const matches = card.dataset.systemName.includes(query);
+          card.hidden = !matches;
+          if (matches) visibleCount += 1;
+        });
+        const emptyMessage = list.querySelector(".search-empty");
+        if (emptyMessage) emptyMessage.style.display = visibleCount ? "none" : "block";
+      });
+    });
+
+    if (window.location.hash) {
+      const initialTab = document.querySelector(`.nav-item[onclick*="${window.location.hash.slice(1)}"]`);
+      if (initialTab) switchTab(window.location.hash.slice(1), initialTab);
+    }
+
+    const sessionTimeoutModal = document.getElementById("sessionTimeoutModal");
+    const sessionTimeoutLogin = document.getElementById("sessionTimeoutLogin");
+    let sessionExpired = false;
+    let sessionCheckInProgress = false;
+
+    function showSessionTimeoutModal() {
+      if (sessionExpired) return;
+
+      sessionExpired = true;
+      sessionTimeoutModal.hidden = false;
+      sessionTimeoutLogin.focus();
+      clearInterval(sessionCheckInterval);
+    }
+
+    async function checkSessionStatus() {
+      if (sessionExpired || sessionCheckInProgress) return;
+
+      sessionCheckInProgress = true;
+      try {
+        const response = await fetch("/session-status", {
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { Accept: "application/json" }
+        });
+
+        if (response.status === 401) {
+          showSessionTimeoutModal();
+        } else if (!response.ok && response.status !== 204) {
+          throw new Error(`Session check failed with status ${response.status}`);
+        }
+      } catch (error) {
+        console.error("Unable to check session status:", error);
+      } finally {
+        sessionCheckInProgress = false;
+      }
+    }
+
+    const sessionCheckInterval = setInterval(checkSessionStatus, 30000);
+    checkSessionStatus();
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) checkSessionStatus();
+    });
+    sessionTimeoutLogin.addEventListener("click", () => {
+      window.location.assign("/login");
+    });
+
+    // Dynamic Pagination Engine
+    document.addEventListener("DOMContentLoaded", function () {
+      if (!document.getElementById("assetTableBody")) return;
+
+      const rowsPerPage = 10;
+      const validRows = Array.from(document.querySelectorAll(".asset-row"));
+      let filteredRows = validRows;
+      let currentPage = 1;
+      let totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+      const assetIdSearch = document.getElementById("assetIdSearch");
+      const assetModelSearch = document.getElementById("assetModelSearch");
+      const assetAssigneeSearch = document.getElementById("assetAssigneeSearch");
+      const assetSearchEmpty = document.getElementById("assetSearchEmpty");
+      const auditRows = Array.from(document.querySelectorAll(".audit-row"));
+      const auditPaginationSummary = document.getElementById("auditPaginationSummary");
+      const auditPaginationButtons = document.getElementById("auditPaginationButtons");
+      let auditCurrentPage = 1;
+
+      function renderPagination() {
+        totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+        currentPage = Math.min(currentPage, totalPages);
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const visibleRows = new Set(filteredRows.slice(start, end));
+
+        validRows.forEach((row) => {
+          row.style.display = visibleRows.has(row) ? "" : "none";
+        });
+
+        const displayedCount = Math.max(0, Math.min(end, filteredRows.length) - start);
+        document.getElementById("paginationSummary").innerText =
+          `Showing ${displayedCount} of ${filteredRows.length} matching assets`;
+        assetSearchEmpty.style.display = filteredRows.length === 0 && validRows.length > 0 ? "block" : "none";
+
+        const controlsContainer = document.getElementById("paginationButtons");
+        controlsContainer.innerHTML = "";
+
+        function createBtn(text, targetPage, isDisabled) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn-page" + (isDisabled ? " disabled" : "");
+          btn.innerText = text;
+
+          if (!isDisabled) {
+            btn.onclick = function (e) {
+              e.preventDefault();
+              currentPage = targetPage;
+              renderPagination();
+            };
+          }
+          return btn;
+        }
+
+        controlsContainer.appendChild(createBtn("<<", 1, currentPage === 1));
+        controlsContainer.appendChild(createBtn("<", currentPage - 1, currentPage === 1));
+
+        for (let i = 1; i <= totalPages; i++) {
+          const numBtn = createBtn(i.toString(), i, false);
+          if (i === currentPage) {
+            numBtn.classList.add("active");
+          }
+          controlsContainer.appendChild(numBtn);
+        }
+
+        controlsContainer.appendChild(createBtn(">", currentPage + 1, currentPage === totalPages));
+        controlsContainer.appendChild(createBtn(">>", totalPages, currentPage === totalPages));
+      }
+
+      function filterAssets() {
+        const idQuery = assetIdSearch.value.trim().toLowerCase();
+        const modelQuery = assetModelSearch.value.trim().toLowerCase();
+        const assigneeId = assetAssigneeSearch ? assetAssigneeSearch.value : "";
+        filteredRows = validRows.filter((row) =>
+          (!idQuery || row.dataset.assetId.includes(idQuery) || row.dataset.assetShortId.includes(idQuery))
+          && (!modelQuery || row.dataset.assetModel.includes(modelQuery))
+          && (assigneeId
+            ? row.dataset.assetAssignee === assigneeId
+            : row.dataset.assetAssignee !== "unassigned"));
+        currentPage = 1;
+        renderPagination();
+      }
+
+      function renderAuditPagination() {
+        if (!auditPaginationSummary || !auditPaginationButtons) return;
+
+        const totalAuditPages = Math.ceil(auditRows.length / rowsPerPage) || 1;
+        auditCurrentPage = Math.min(auditCurrentPage, totalAuditPages);
+        const start = (auditCurrentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const visibleRows = new Set(auditRows.slice(start, end));
+
+        auditRows.forEach((row) => {
+          row.style.display = visibleRows.has(row) ? "" : "none";
+        });
+
+        const displayedCount = Math.max(0, Math.min(end, auditRows.length) - start);
+        auditPaginationSummary.innerText =
+          `Showing ${displayedCount} of ${auditRows.length} audit logs`;
+        auditPaginationButtons.innerHTML = "";
+
+        function createAuditPageButton(text, targetPage, isDisabled) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "btn-page" + (isDisabled ? " disabled" : "");
+          button.innerText = text;
+
+          if (!isDisabled) {
+            button.onclick = function (event) {
+              event.preventDefault();
+              auditCurrentPage = targetPage;
+              renderAuditPagination();
+            };
+          }
+          return button;
+        }
+
+        auditPaginationButtons.appendChild(createAuditPageButton("<<", 1, auditCurrentPage === 1));
+        auditPaginationButtons.appendChild(createAuditPageButton("<", auditCurrentPage - 1, auditCurrentPage === 1));
+
+        for (let page = 1; page <= totalAuditPages; page++) {
+          const button = createAuditPageButton(page.toString(), page, false);
+          if (page === auditCurrentPage) button.classList.add("active");
+          auditPaginationButtons.appendChild(button);
+        }
+
+        auditPaginationButtons.appendChild(createAuditPageButton(">", auditCurrentPage + 1, auditCurrentPage === totalAuditPages));
+        auditPaginationButtons.appendChild(createAuditPageButton(">>", totalAuditPages, auditCurrentPage === totalAuditPages));
+      }
+
+      assetIdSearch.addEventListener("input", filterAssets);
+      assetModelSearch.addEventListener("input", filterAssets);
+      if (assetAssigneeSearch) assetAssigneeSearch.addEventListener("change", filterAssets);
+      renderPagination();
+      renderAuditPagination();
+    });
+  </script>
+</body>
+</html>

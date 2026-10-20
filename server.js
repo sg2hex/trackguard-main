@@ -106,7 +106,7 @@ const inventorySystemSchema = new mongoose.Schema({
   inviteCode: { type: String, required: true, unique: true },
   members: [{
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    status: { type: String, enum: ['pending', 'active'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'active', 'left'], default: 'pending' },
     leaveRequested: { type: Boolean, default: false },
     joinedAt: { type: Date, default: Date.now }
   }],
@@ -422,11 +422,21 @@ app.post('/systems/join', isAuthenticated, async (req, res) => {
     if (system.owner.equals(user._id)) {
       return res.status(400).send('You are already the administrator of this system.');
     }
-    if (system.members.some((member) => member.user.equals(user._id))) {
+    const membership = system.members.find((member) =>
+      member.user.equals(user._id) && member.status !== 'left');
+    if (membership) {
       return res.status(400).send('You have already joined or requested to join this system.');
     }
 
-    system.members.push({ user: user._id, status: 'pending' });
+    const previousMembership = system.members.find((member) =>
+      member.user.equals(user._id) && member.status === 'left');
+    if (previousMembership) {
+      previousMembership.status = 'pending';
+      previousMembership.leaveRequested = false;
+      previousMembership.joinedAt = new Date();
+    } else {
+      system.members.push({ user: user._id, status: 'pending' });
+    }
     await system.save();
     await AuditLog.create({
       system: system._id,
@@ -571,7 +581,8 @@ app.post('/systems/:systemId/members/:memberId/approve-leave', isAuthenticated, 
         { $set: { assignedTo: null, updatedAt: new Date() } },
         { session }
       );
-      system.members.pull(membership._id);
+      membership.status = 'left';
+      membership.leaveRequested = false;
       await system.save({ session });
       await new AuditLog({
         system: system._id,

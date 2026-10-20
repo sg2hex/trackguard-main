@@ -872,4 +872,3 @@ mongoose.connect(process.env.MONGO_URI)
       console.log(`TrackGuard server running on ${BASE_URL}`);
     });
   })
-  .catch((err) => console.error('Database Connection Error:', err));

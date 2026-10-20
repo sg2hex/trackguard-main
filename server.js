@@ -106,7 +106,7 @@ const inventorySystemSchema = new mongoose.Schema({
   inviteCode: { type: String, required: true, unique: true },
   members: [{
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    status: { type: String, enum: ['pending', 'active', 'left'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'active'], default: 'pending' },
     leaveRequested: { type: Boolean, default: false },
     joinedAt: { type: Date, default: Date.now }
   }],
@@ -422,21 +422,11 @@ app.post('/systems/join', isAuthenticated, async (req, res) => {
     if (system.owner.equals(user._id)) {
       return res.status(400).send('You are already the administrator of this system.');
     }
-    const membership = system.members.find((member) =>
-      member.user.equals(user._id) && member.status !== 'left');
-    if (membership) {
+    if (system.members.some((member) => member.user.equals(user._id))) {
       return res.status(400).send('You have already joined or requested to join this system.');
     }
 
-    const previousMembership = system.members.find((member) =>
-      member.user.equals(user._id) && member.status === 'left');
-    if (previousMembership) {
-      previousMembership.status = 'pending';
-      previousMembership.leaveRequested = false;
-      previousMembership.joinedAt = new Date();
-    } else {
-      system.members.push({ user: user._id, status: 'pending' });
-    }
+    system.members.push({ user: user._id, status: 'pending' });
     await system.save();
     await AuditLog.create({
       system: system._id,
@@ -581,8 +571,7 @@ app.post('/systems/:systemId/members/:memberId/approve-leave', isAuthenticated, 
         { $set: { assignedTo: null, updatedAt: new Date() } },
         { session }
       );
-      membership.status = 'left';
-      membership.leaveRequested = false;
+      system.members.pull(membership._id);
       await system.save({ session });
       await new AuditLog({
         system: system._id,
@@ -863,7 +852,7 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
         await fs.promises.unlink(req.file.path);
       } catch (cleanupError) {
         if (cleanupError.code !== 'ENOENT') {
-          console.error('Unable to remove uploaded profile picture after save failure:', cleanupError);
+          console.error('Unable to cleanup temporary upload file:', cleanupError);
         }
       }
     }
@@ -872,157 +861,15 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
   }
 });
 
-const getOwnedSystem = async (systemId, email) => {
-  if (!mongoose.isValidObjectId(systemId)) return null;
-  const owner = await User.findOne({ email }).select('_id');
-  if (!owner) return null;
-  return InventorySystem.findOne({ _id: systemId, owner: owner._id });
-};
+// Start Server
+const PORT = process.env.PORT || 5000;
+const BASE_URL = process.env.APP_BASE_URL || `http://localhost:${PORT}`;
 
-const getAssignedStaffId = (system, value) => {
-  if (typeof value !== 'string' || value === '') return null;
-  if (!mongoose.isValidObjectId(value)) return undefined;
-  const member = system.members.find((entry) =>
-    entry.status === 'active' && entry.user.equals(value));
-  return member ? member.user : undefined;
-};
-
-app.post('/add-asset', isAuthenticated, async (req, res) => {
-  const { systemId } = req.body;
-  try {
-    const system = await getOwnedSystem(systemId, req.session.user.email);
-    if (!system) return res.status(403).send('Only this system’s administrator can add assets.');
-
-    const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
-    const description = typeof req.body.description === 'string' ? req.body.description.trim() : '';
-    const status = typeof req.body.status === 'string' ? req.body.status.trim() : 'Active';
-    const assignedTo = getAssignedStaffId(system, req.body.assignedTo);
-    if (!name || name.length > 120 || description.length > 500 || !status || status.length > 40) {
-      return res.status(400).send('Provide an asset name (up to 120 characters), description (up to 500), and status (up to 40).');
-    }
-    if (assignedTo === undefined) {
-      return res.status(400).send('Assets can only be assigned to active staff in this system.');
-    }
-
-    const newAsset = await Asset.create({
-      system: system._id,
-      name,
-      description: description || 'No description provided',
-      assignedTo,
-      status,
-      updatedAt: new Date()
-    });
-    await AuditLog.create({
-      system: system._id,
-      action: 'ASSET_REGISTERED',
-      performedBy: req.session.user.email,
-      details: `Registered "${newAsset.name}" (#TG-${newAsset._id.toString().slice(-6)}).`
-    });
-    return res.redirect(`/dashboard?system=${system._id}`);
-  } catch (err) {
-    console.error('Add Asset Error:', err);
-    return res.status(500).send('Failed to add asset.');
-  }
-});
-
-app.post('/update-asset', isAuthenticated, async (req, res) => {
-  const { systemId, assetId } = req.body;
-  try {
-    const system = await getOwnedSystem(systemId, req.session.user.email);
-    if (!system) return res.status(403).send('Only this system’s administrator can modify assets.');
-    if (!mongoose.isValidObjectId(assetId)) return res.status(400).send('Invalid asset.');
-
-    const asset = await Asset.findOne({ _id: assetId, system: system._id });
-    if (!asset) return res.status(404).send('Asset not found in this system.');
-
-    const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
-    const description = typeof req.body.description === 'string' ? req.body.description.trim() : '';
-    const status = typeof req.body.status === 'string' ? req.body.status.trim() : '';
-    const assignedTo = getAssignedStaffId(system, req.body.assignedTo);
-    if (!name || name.length > 120 || description.length > 500 || !status || status.length > 40) {
-      return res.status(400).send('Provide an asset name (up to 120 characters), description (up to 500), and status (up to 40).');
-    }
-    if (assignedTo === undefined) {
-      return res.status(400).send('Assets can only be assigned to active staff in this system.');
-    }
-
-    asset.name = name;
-    asset.description = description || 'No description provided';
-    asset.status = status;
-    asset.assignedTo = assignedTo;
-    asset.updatedAt = new Date();
-    await asset.save();
-    await AuditLog.create({
-      system: system._id,
-      action: 'ASSET_UPDATED',
-      performedBy: req.session.user.email,
-      details: `Modified "${asset.name}" (#TG-${asset._id.toString().slice(-6)}).`
-    });
-    return res.redirect(`/dashboard?system=${system._id}`);
-  } catch (err) {
-    console.error('Update Asset Error:', err);
-    return res.status(500).send('Failed to update asset.');
-  }
-});
-
-app.post('/delete-asset', isAuthenticated, async (req, res) => {
-  const { systemId, assetId } = req.body;
-  try {
-    const system = await getOwnedSystem(systemId, req.session.user.email);
-    if (!system) return res.status(403).send('Only this system’s administrator can delete assets.');
-    if (!mongoose.isValidObjectId(assetId)) return res.status(400).send('Invalid asset.');
-
-    const deletedAsset = await Asset.findOneAndDelete({ _id: assetId, system: system._id });
-    if (!deletedAsset) return res.status(404).send('Asset not found in this system.');
-
-    await AuditLog.create({
-      system: system._id,
-      action: 'ASSET_DELETED',
-      performedBy: req.session.user.email,
-      details: `Deleted "${deletedAsset.name}" (#TG-${deletedAsset._id.toString().slice(-6)}).`
-    });
-    return res.redirect(`/dashboard?system=${system._id}`);
-  } catch (err) {
-    console.error('Delete Asset Error:', err);
-    return res.status(500).send('Failed to delete asset.');
-  }
-});
-
-app.get('/logout', (req, res) => {
-  if (!req.session) return res.redirect('/login');
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout Error:', err);
-      return res.status(500).send('Unable to log out.');
-    }
-    return res.redirect('/login');
-  });
-});
-
-app.post('/logout', isAuthenticated, (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout Error:', err);
-      return res.status(500).send('Unable to log out.');
-    }
-    return res.redirect('/login');
-  });
-});
-
-app.use(errorHandler);
-
-// DB Connection & Server Start
-const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/trackguard';
-
-mongoose.connect(MONGO_URI)
-  .then(async () => {
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
     console.log('Connected to MongoDB Atlas');
-
-    try {
-      await Asset.collection.dropIndex('tagNumber_1');
-    } catch (indexErr) {}
-
-    app.listen(PORT, () => console.log(`TrackGuard server running on http://localhost:${PORT}`));
+    app.listen(PORT, () => {
+      console.log(`TrackGuard server running on ${BASE_URL}`);
+    });
   })
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch((err) => console.error('Database Connection Error:', err));

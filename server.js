@@ -232,6 +232,7 @@ app.post('/register', async (req, res) => {
       emailNormalized: cleanEmail,
       username,
       usernameNormalized,
+      profileName: username,
       password: hashedPassword,
       role: 'Admin'
     });
@@ -807,7 +808,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
       }
     }
 
-    const profileName = user.profileName || 'System Admin';
+    const profileName = user.profileName || user.username || 'System Admin';
     const profileInitials = profileName.split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)

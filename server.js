@@ -226,7 +226,8 @@ app.post('/register', async (req, res) => {
     const existingUsername = await User.findOne({
       $or: [
         { usernameNormalized },
-        { username: { $regex: `^${username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }
+        { username: { $regex: `^${username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } },
+        { profileName: { $regex: `^${username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }
       ]
     });
     if (existingUsername) {
@@ -921,7 +922,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
       const assetFilter = { system: selectedSystem._id };
       if (!isSystemAdmin) assetFilter.assignedTo = user._id;
       assets = await Asset.find(assetFilter)
-        .populate('assignedTo', 'profileName email')
+        .populate('assignedTo', 'username profileName profilePicture email')
         .sort({ updatedAt: -1 });
 
       if (isSystemAdmin) {
@@ -930,11 +931,18 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
           .filter((member) => member.status === 'active')
           .map((member) => member.user);
         const staffUsers = activeStaffIds.length
-          ? await User.find({ _id: { $in: activeStaffIds } }).select('profileName email')
+          ? await User.find({ _id: { $in: activeStaffIds } }).select('username profileName profilePicture email')
           : [];
         staff = staffUsers.map((staffUser) => ({
           id: staffUser._id.toString(),
-          name: staffUser.profileName || staffUser.email,
+          name: staffUser.username || staffUser.profileName || staffUser.email,
+          profilePicture: staffUser.profilePicture || null,
+          initials: (staffUser.username || staffUser.profileName || staffUser.email)
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0].toUpperCase())
+            .join(''),
           email: staffUser.email
         }));
       }
@@ -1025,7 +1033,8 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
       _id: { $ne: user._id },
       $or: [
         { usernameNormalized },
-        { username: { $regex: `^${profileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }
+        { username: { $regex: `^${profileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } },
+        { profileName: { $regex: `^${profileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }
       ]
     }).select('_id');
     if (existingUsername) {

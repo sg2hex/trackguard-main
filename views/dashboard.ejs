@@ -160,6 +160,46 @@
       stroke-linejoin: round;
     }
 
+    .assigned-staff-avatar {
+      display: inline-flex;
+      width: 30px;
+      height: 30px;
+      flex: 0 0 30px;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 50%;
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+
+    .assigned-staff-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .assigned-staff-control {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .assigned-staff-control select {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .assigned-staff-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .nav-item:hover {
       background-color: #dbeafe;
       color: #1d4ed8;
@@ -945,6 +985,10 @@
           Joined asset systems
         </button>
         <hr class="nav-divider">
+        <button class="nav-item" onclick="switchTab('contactTab', this)">
+          <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="m4 7 8 6 8-6"/></svg>
+          Contact Us
+        </button>
         <button class="nav-item <%= selectedSystem ? '' : 'active' %>" onclick="switchTab('aboutTab', this)">
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
           About Us
@@ -1110,12 +1154,23 @@
                               <input type="hidden" name="assetId" value="<%= asset._id %>">
                               <input type="text" name="name" value="<%= asset.name %>" aria-label="Asset name" maxlength="120" required>
                               <input type="text" name="description" value="<%= asset.description %>" aria-label="Description" maxlength="500">
-                              <select name="assignedTo" aria-label="Assigned staff">
+                              <div class="assigned-staff-control">
+                                <span class="assigned-staff-avatar" aria-hidden="true">
+                                  <% if (asset.assignedTo && asset.assignedTo.profilePicture) { %>
+                                    <img src="<%= asset.assignedTo.profilePicture %>" alt="">
+                                  <% } else if (asset.assignedTo) { %>
+                                    <%= (asset.assignedTo.username || asset.assignedTo.profileName || asset.assignedTo.email).slice(0, 2).toUpperCase() %>
+                                  <% } else { %>
+                                    —
+                                  <% } %>
+                                </span>
+                              <select class="asset-assignee-select" name="assignedTo" aria-label="Assigned staff">
                                 <option value="">Unassigned</option>
                                 <% staff.forEach(member => { %>
-                                  <option value="<%= member.id %>" <%= asset.assignedTo && asset.assignedTo._id.toString() === member.id ? 'selected' : '' %>><%= member.name %></option>
+                                  <option value="<%= member.id %>" data-profile-picture="<%= member.profilePicture || '' %>" data-initials="<%= member.initials %>" <%= asset.assignedTo && asset.assignedTo._id.toString() === member.id ? 'selected' : '' %>><%= member.name %></option>
                                 <% }) %>
                               </select>
+                              </div>
                               <input type="number" name="quantity" value="<%= asset.quantity || 1 %>" aria-label="Quantity" min="1" step="1" required>
                               <input type="text" name="status" value="<%= asset.status || 'Active' %>" aria-label="Status" maxlength="40" required>
                               <span><%= new Date(asset.updatedAt).toLocaleString() %></span>
@@ -1131,7 +1186,22 @@
                       <% } else { %>
                         <td><strong><%= asset.name %></strong></td>
                         <td><%= asset.description %></td>
-                        <td><%= asset.assignedTo && asset.assignedTo.profileName ? asset.assignedTo.profileName : profileName %></td>
+                        <td>
+                          <% if (asset.assignedTo) { %>
+                            <span class="assigned-staff-cell">
+                              <span class="assigned-staff-avatar" aria-hidden="true">
+                                <% if (asset.assignedTo.profilePicture) { %>
+                                  <img src="<%= asset.assignedTo.profilePicture %>" alt="">
+                                <% } else { %>
+                                  <%= (asset.assignedTo.username || asset.assignedTo.profileName || asset.assignedTo.email).slice(0, 2).toUpperCase() %>
+                                <% } %>
+                              </span>
+                              <%= asset.assignedTo.username || asset.assignedTo.profileName || asset.assignedTo.email %>
+                            </span>
+                          <% } else { %>
+                            Unassigned
+                          <% } %>
+                        </td>
                         <td><%= asset.quantity || 1 %></td>
                         <td><span class="status-badge"><%= asset.status || 'Active' %></span></td>
                         <td><%= new Date(asset.updatedAt).toLocaleString() %></td>
@@ -1180,6 +1250,17 @@
         <% } %>
       </section>
     <% } else { %>
+      <section id="contactTab" class="tab-content">
+        <h1 class="page-title">Contact Us</h1>
+        <div class="card about-copy">
+          <h2>TrackguardOfficial</h2>
+          <p><strong>Facebook:</strong> —</p>
+          <p><strong>Instagram:</strong> —</p>
+          <p><strong>Email:</strong> —</p>
+          <p><strong>Contact number:</strong> +63 9xxx xxx xxx</p>
+        </div>
+      </section>
+
       <section id="aboutTab" class="tab-content active">
         <h1 class="page-title">About Us</h1>
         <div class="card about-copy">
@@ -1456,6 +1537,25 @@
     const accountDeleteConfirmModal = document.getElementById("accountDeleteConfirmModal");
     const cancelAccountDelete = document.getElementById("cancelAccountDelete");
     let profilePreviewUrl;
+
+    document.querySelectorAll(".asset-assignee-select").forEach((select) => {
+      const avatar = select.parentElement.querySelector(".assigned-staff-avatar");
+      const updateAvatar = () => {
+        const option = select.selectedOptions[0];
+        avatar.replaceChildren();
+        if (option && option.dataset.profilePicture) {
+          const image = document.createElement("img");
+          image.src = option.dataset.profilePicture;
+          image.alt = "";
+          avatar.appendChild(image);
+        } else {
+          avatar.textContent = option && option.value ? option.dataset.initials : "—";
+        }
+      };
+
+      select.addEventListener("change", updateAvatar);
+      updateAvatar();
+    });
 
     function hideProfileModal() {
       profileModal.hidden = true;

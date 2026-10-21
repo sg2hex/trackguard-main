@@ -1,6 +1,22 @@
 const rateLimit = require('express-rate-limit');
 const loginRateLimitKey = (req) => rateLimit.ipKeyGenerator(req.ip);
 
+const renderRateLimitResponse = (req, res, next, options) => {
+  const resetTime = req.rateLimit && req.rateLimit.resetTime;
+  if (resetTime) {
+    const retryAfterSeconds = Math.max(0, Math.ceil((resetTime.getTime() - Date.now()) / 1000));
+    res.set('Retry-After', String(retryAfterSeconds));
+  }
+
+  if (req.get('accept') && req.get('accept').includes('text/html')) {
+    return res.status(options.statusCode).render('rate-limit', {
+      rateLimitMessage: options.message
+    });
+  }
+
+  return res.status(options.statusCode).json({ error: options.message });
+};
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // Allow five login requests per IP during each window
@@ -44,7 +60,10 @@ const passwordResetLimiter = rateLimit({
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
-  message: 'Too many requests generated from this IP, please try again later.'
+  message: 'Too many requests generated from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: renderRateLimitResponse
 });
 
 module.exports = { loginLimiter, resetLoginLimiter, passwordResetLimiter, apiLimiter };

@@ -138,10 +138,21 @@ const auditSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
+const profileNameChangeLogSchema = new mongoose.Schema({
+  system: { type: mongoose.Schema.Types.ObjectId, ref: 'InventorySystem', required: true },
+  staff: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  performedBy: { type: String, required: true },
+  previousName: { type: String, required: true },
+  newName: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now }
+});
+
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 const InventorySystem = mongoose.models.InventorySystem || mongoose.model('InventorySystem', inventorySystemSchema);
 const Asset = mongoose.models.Asset || mongoose.model('Asset', assetSchema);
 const AuditLog = mongoose.models.AuditLog || mongoose.model('AuditLog', auditSchema);
+const ProfileNameChangeLog = mongoose.models.ProfileNameChangeLog
+  || mongoose.model('ProfileNameChangeLog', profileNameChangeLogSchema);
 
 const profileImageExtensions = {
   'image/jpeg': '.jpg',
@@ -909,6 +920,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
     let leaveRequested = false;
     let assets = [];
     let auditLogs = [];
+    let profileNameChangeLogs = [];
     let staff = [];
 
     if (typeof req.query.system === 'string') {
@@ -934,6 +946,8 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
 
       if (isSystemAdmin) {
         auditLogs = await AuditLog.find({ system: selectedSystem._id }).sort({ timestamp: -1 });
+        profileNameChangeLogs = await ProfileNameChangeLog.find({ system: selectedSystem._id })
+          .sort({ timestamp: -1 });
         const activeStaffIds = selectedSystem.members
           .filter((member) => member.status === 'active')
           .map((member) => member.user);
@@ -992,6 +1006,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
       leaveRequested,
       assets,
       auditLogs,
+      profileNameChangeLogs,
       staff,
       profileName,
       username: user.username || '',
@@ -1036,6 +1051,7 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
     return res.status(400).send(usernameError);
   }
 
+  let profileSaved = false;
   try {
     const user = await User.findOne({ email: req.session.user.email });
     if (!user) {
@@ -1057,6 +1073,8 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
       return res.redirect('/dashboard?notice=username-taken');
     }
 
+    const previousName = user.username || user.profileName || '';
+    const nameChanged = previousName !== profileName;
     const oldProfilePicture = user.profilePicture;
     user.profileName = profileName;
     user.username = profileName;
@@ -1065,6 +1083,24 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
       user.profilePicture = `/profile-images/${req.file.filename}`;
     }
     await user.save();
+    profileSaved = true;
+
+    if (nameChanged) {
+      const staffSystems = await InventorySystem.find({
+        owner: { $ne: user._id },
+        members: { $elemMatch: { user: user._id, status: 'active' } }
+      }).select('_id');
+
+      if (staffSystems.length) {
+        await ProfileNameChangeLog.insertMany(staffSystems.map((system) => ({
+          system: system._id,
+          staff: user._id,
+          performedBy: user.email,
+          previousName,
+          newName: profileName
+        })));
+      }
+    }
 
     if (req.file && oldProfilePicture && oldProfilePicture.startsWith('/profile-images/')) {
       const oldImagePath = path.join(profileImageDirectory, path.basename(oldProfilePicture));
@@ -1079,7 +1115,7 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
 
     return res.redirect('/dashboard');
   } catch (err) {
-    if (req.file) {
+    if (req.file && !profileSaved) {
       try {
         await fs.promises.unlink(req.file.path);
       } catch (cleanupError) {
@@ -1092,7 +1128,9 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
       return res.redirect('/dashboard?notice=username-taken');
     }
     console.error('Profile Update Error:', err);
-    return res.status(500).send('Unable to update profile.');
+    return res.status(500).send(profileSaved
+      ? 'Profile updated, but unable to record the name change.'
+      : 'Unable to update profile.');
   }
 });
 

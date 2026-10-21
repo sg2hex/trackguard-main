@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/images/trackguard-icon.png?v=1">
+  <link rel="stylesheet" href="/css/theme.css">
+  <script>
+    try {
+      const storedTheme = localStorage.getItem('trackguard-theme');
+      document.documentElement.dataset.theme = storedTheme === 'dark' || storedTheme === 'light'
+        ? storedTheme
+        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    } catch {
+      document.documentElement.dataset.theme = 'light';
+    }
+  </script>
+  <script src="/js/theme.js" defer></script>
+  <title>TrackGuard - Request Limit</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      margin: 0;
+      padding: 20px;
+      background: #f1f5f9;
+    }
+
+    .rate-limit-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.55);
+    }
+
+    .rate-limit-dialog {
+      width: 100%;
+      max-width: 400px;
+      padding: 28px;
+      border: 1px solid #e1e8ed;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+      text-align: center;
+    }
+
+    .rate-limit-dialog h1 {
+      margin: 0 0 10px;
+      color: #0f172a;
+      font-size: 20px;
+    }
+
+    .rate-limit-dialog p {
+      margin: 0 0 22px;
+      color: #64748b;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .rate-limit-dialog button {
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 6px;
+      background: #2563eb;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="rate-limit-overlay" role="alertdialog" aria-modal="true" aria-labelledby="rateLimitTitle">
+    <div class="rate-limit-dialog">
+      <h1 id="rateLimitTitle">Too many requests</h1>
+      <p><%= rateLimitMessage %></p>
+      <button id="rateLimitDismiss" type="button">Okay</button>
+    </div>
+  </div>
+  <script>
+    document.getElementById("rateLimitDismiss").addEventListener("click", () => {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.assign("/login");
+      }
+    });
+    document.getElementById("rateLimitDismiss").focus();
+  </script>
+</body>
+</html>

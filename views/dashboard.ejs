@@ -1538,6 +1538,35 @@
 
         <% if (isSystemAdmin) { %>
           <section class="workspace-section">
+            <h2>Staff Name Change Logs</h2>
+            <div class="card">
+              <div class="table-scroll">
+              <table class="audit-table">
+                <thead><tr><th>Staff Account</th><th>Previous Name</th><th>New Name</th><th>Timestamp</th></tr></thead>
+                <tbody>
+                  <% if (profileNameChangeLogs.length) { %>
+                    <% profileNameChangeLogs.forEach(log => { %>
+                      <tr class="profile-name-change-row">
+                        <td><%= log.performedBy %></td>
+                        <td><%= log.previousName %></td>
+                        <td><%= log.newName %></td>
+                        <td><%= new Date(log.timestamp).toLocaleString() %></td>
+                      </tr>
+                    <% }) %>
+                  <% } else { %>
+                    <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">No staff name changes found.</td></tr>
+                  <% } %>
+                </tbody>
+              </table>
+              </div>
+              <div class="pagination-bar">
+                <div id="profileNameChangePaginationSummary">Showing 0 of 0 name changes</div>
+                <div class="pagination-controls" id="profileNameChangePaginationButtons"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="workspace-section">
             <h2>Audit Trail</h2>
             <div class="card">
               <div class="table-scroll">
@@ -2173,7 +2202,11 @@
       const auditRows = Array.from(document.querySelectorAll(".audit-row"));
       const auditPaginationSummary = document.getElementById("auditPaginationSummary");
       const auditPaginationButtons = document.getElementById("auditPaginationButtons");
+      const profileNameChangeRows = Array.from(document.querySelectorAll(".profile-name-change-row"));
+      const profileNameChangePaginationSummary = document.getElementById("profileNameChangePaginationSummary");
+      const profileNameChangePaginationButtons = document.getElementById("profileNameChangePaginationButtons");
       let auditCurrentPage = 1;
+      let profileNameChangeCurrentPage = 1;
 
       function renderPagination() {
         totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
@@ -2286,11 +2319,59 @@
         auditPaginationButtons.appendChild(createAuditPageButton(">>", totalAuditPages, auditCurrentPage === totalAuditPages));
       }
 
+      function renderProfileNameChangePagination() {
+        if (!profileNameChangePaginationSummary || !profileNameChangePaginationButtons) return;
+
+        const totalPages = Math.ceil(profileNameChangeRows.length / rowsPerPage) || 1;
+        profileNameChangeCurrentPage = Math.min(profileNameChangeCurrentPage, totalPages);
+        const start = (profileNameChangeCurrentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const visibleRows = new Set(profileNameChangeRows.slice(start, end));
+
+        profileNameChangeRows.forEach((row) => {
+          row.style.display = visibleRows.has(row) ? "" : "none";
+        });
+
+        const displayedCount = Math.max(0, Math.min(end, profileNameChangeRows.length) - start);
+        profileNameChangePaginationSummary.innerText =
+          `Showing ${displayedCount} of ${profileNameChangeRows.length} name changes`;
+        profileNameChangePaginationButtons.innerHTML = "";
+
+        function createProfileNameChangePageButton(text, targetPage, isDisabled) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "btn-page" + (isDisabled ? " disabled" : "");
+          button.innerText = text;
+
+          if (!isDisabled) {
+            button.onclick = function (event) {
+              event.preventDefault();
+              profileNameChangeCurrentPage = targetPage;
+              renderProfileNameChangePagination();
+            };
+          }
+          return button;
+        }
+
+        profileNameChangePaginationButtons.appendChild(createProfileNameChangePageButton("<<", 1, profileNameChangeCurrentPage === 1));
+        profileNameChangePaginationButtons.appendChild(createProfileNameChangePageButton("<", profileNameChangeCurrentPage - 1, profileNameChangeCurrentPage === 1));
+
+        for (let page = 1; page <= totalPages; page++) {
+          const button = createProfileNameChangePageButton(page.toString(), page, false);
+          if (page === profileNameChangeCurrentPage) button.classList.add("active");
+          profileNameChangePaginationButtons.appendChild(button);
+        }
+
+        profileNameChangePaginationButtons.appendChild(createProfileNameChangePageButton(">", profileNameChangeCurrentPage + 1, profileNameChangeCurrentPage === totalPages));
+        profileNameChangePaginationButtons.appendChild(createProfileNameChangePageButton(">>", totalPages, profileNameChangeCurrentPage === totalPages));
+      }
+
       assetIdSearch.addEventListener("input", filterAssets);
       assetModelSearch.addEventListener("input", filterAssets);
       if (assetAssigneeSearch) assetAssigneeSearch.addEventListener("change", filterAssets);
       renderPagination();
       renderAuditPagination();
+      renderProfileNameChangePagination();
     });
   </script>
 </body>

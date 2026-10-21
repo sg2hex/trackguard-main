@@ -36,4 +36,11 @@ const getPasswordError = (password) => {
   return null;
 };
 
-module.exports = { isValidEmail, getPasswordError };
+const getUsernameError = (username) => {
+  if (typeof username !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_.-]{2,29}$/.test(username)) {
+    return 'Username must be 3-30 characters and contain only letters, numbers, periods, underscores, or hyphens.';
+  }
+  return null;
+};
+
+module.exports = { isValidEmail, getPasswordError, getUsernameError };

@@ -1425,7 +1425,7 @@
           <h2>Assets</h2>
           <div class="card">
           <div class="search-controls" style="padding:16px 16px 0;">
-            <input id="assetIdSearch" type="search" placeholder="Search asset ID" aria-label="Search asset ID">
+            <input id="assetIdSearch" type="search" placeholder="Search Asset ID (e.g. #TG-ABC123)" aria-label="Search Asset ID">
             <input id="assetModelSearch" type="search" placeholder="Search model or name" aria-label="Search asset model or name">
             <% if (isSystemAdmin) { %>
               <select id="assetAssigneeSearch" aria-label="Filter by assigned staff">
@@ -1441,7 +1441,7 @@
           <table class="asset-table">
               <thead>
                 <tr>
-                  <th>System ID</th>
+                  <th>Asset ID</th>
                   <th>Asset Name</th>
                   <th>Description</th>
                   <th>Assigned Staff</th>
@@ -2226,15 +2226,15 @@
       }
 
       function filterAssets() {
-        const idQuery = assetIdSearch.value.trim().toLowerCase();
+        const idQuery = assetIdSearch.value.trim().toLowerCase()
+          .replace(/^#?tg-/, "")
+          .replace(/[\s-]/g, "");
         const modelQuery = assetModelSearch.value.trim().toLowerCase();
         const assigneeId = assetAssigneeSearch ? assetAssigneeSearch.value : "";
         filteredRows = validRows.filter((row) =>
           (!idQuery || row.dataset.assetId.includes(idQuery) || row.dataset.assetShortId.includes(idQuery))
           && (!modelQuery || row.dataset.assetModel.includes(modelQuery))
-          && (assigneeId
-            ? row.dataset.assetAssignee === assigneeId
-            : row.dataset.assetAssignee !== "unassigned"));
+          && (!assigneeId || row.dataset.assetAssignee === assigneeId));
         currentPage = 1;
         renderPagination();
       }

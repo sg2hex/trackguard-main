@@ -217,6 +217,32 @@ html[data-theme="dark"] textarea:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
 }
 
+html[data-theme="dark"] body .login-body .form-control,
+html[data-theme="dark"] body .login-body .form-control:focus,
+html[data-theme="dark"] body .login-body .form-control:focus-visible,
+html[data-theme="dark"] body .login-body .form-control:-webkit-autofill,
+html[data-theme="dark"] body .login-body .form-control:-webkit-autofill:hover,
+html[data-theme="dark"] body .login-body .form-control:-webkit-autofill:focus {
+  border-color: #3a4b63;
+  background-color: #0f1929 !important;
+  color: #e2e8f0 !important;
+  caret-color: #e2e8f0;
+  -webkit-text-fill-color: #e2e8f0;
+  -webkit-box-shadow: 0 0 0 1000px #0f1929 inset;
+  box-shadow: 0 0 0 1000px #0f1929 inset;
+}
+
+html[data-theme="dark"] body .login-body .form-control:focus,
+html[data-theme="dark"] body .login-body .form-control:focus-visible {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22), 0 0 0 1000px #0f1929 inset;
+}
+
+html[data-theme="dark"] body .login-body .form-control::placeholder {
+  color: #8493a8;
+  opacity: 1;
+}
+
 html[data-theme="dark"] table {
   color: #dbe5f2;
 }

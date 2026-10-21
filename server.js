@@ -17,6 +17,7 @@ const isAuthenticated = typeof authModule === 'function' ? authModule : (authMod
 
 const rateLimitModule = require('./middleware/rateLimit');
 const loginLimiter = rateLimitModule.loginLimiter || ((req, res, next) => next());
+const resetLoginLimiter = rateLimitModule.resetLoginLimiter;
 const passwordResetLimiter = rateLimitModule.passwordResetLimiter || ((req, res, next) => next());
 const apiLimiter = rateLimitModule.apiLimiter || ((req, res, next) => next());
 const { isValidEmail, getPasswordError, getUsernameError } = require('./middleware/validation');
@@ -303,7 +304,13 @@ app.post('/login', loginLimiter, async (req, res) => {
       if (err) {
         return res.status(500).render('login', { error: 'Session storage error.' });
       }
-      res.redirect('/dashboard');
+      Promise.resolve()
+        .then(() => resetLoginLimiter(req))
+        .then(() => res.redirect('/dashboard'))
+        .catch((resetError) => {
+          console.error('Login Rate Limit Reset Error:', resetError);
+          return res.status(500).render('login', { error: 'Unable to complete login request.' });
+        });
     });
 
   } catch (err) {

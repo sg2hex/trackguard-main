@@ -175,7 +175,11 @@ app.get('/', (req, res) => {
 app.get('/login', (req, res) => {
   res.render('login', {
     error: null,
-    success: req.query.reset === 'success' ? 'Your password has been reset. You can now sign in.' : null
+    success: req.query.deleted === 'success'
+      ? 'Your account has been deleted.'
+      : req.query.reset === 'success'
+        ? 'Your password has been reset. You can now sign in.'
+        : null
   });
 });
 
@@ -808,7 +812,7 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
       }
     }
 
-    const profileName = user.profileName || user.username || 'System Admin';
+    const profileName = user.username || user.profileName || 'System Admin';
     const profileInitials = profileName.split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
@@ -838,13 +842,18 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
       auditLogs,
       staff,
       profileName,
+      username: user.username || '',
       profilePicture: user.profilePicture || null,
       profileInitials: profileInitials || 'SA',
       notice: req.query.notice === 'requested'
         ? 'Join request sent. A system administrator must approve you before you can access the inventory.'
         : req.query.notice === 'leave-requested'
           ? 'Leave request sent. You will remain a staff member until the administrator reviews it.'
-          : null,
+          : req.query.notice === 'username-taken'
+            ? 'That username is already in use. Choose a different username.'
+            : req.query.notice === 'account-delete-blocked'
+              ? 'Leave all inventory systems and transfer or delete any systems you own before deleting your account.'
+              : null,
       showDeletedNotice: req.query.notice === 'deleted'
     });
   } catch (err) {
@@ -870,9 +879,10 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
     ? req.body.profileName.trim()
     : '';
 
-  if (profileName.length < 1 || profileName.length > 40) {
+  const usernameError = getUsernameError(profileName);
+  if (usernameError) {
     if (req.file) await fs.promises.unlink(req.file.path);
-    return res.status(400).send('Profile name must be between 1 and 40 characters.');
+    return res.status(400).send(usernameError);
   }
 
   try {
@@ -882,8 +892,23 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
       return res.redirect('/logout');
     }
 
+    const usernameNormalized = profileName.toLowerCase();
+    const existingUsername = await User.findOne({
+      _id: { $ne: user._id },
+      $or: [
+        { usernameNormalized },
+        { username: { $regex: `^${profileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' } }
+      ]
+    }).select('_id');
+    if (existingUsername) {
+      if (req.file) await fs.promises.unlink(req.file.path);
+      return res.redirect('/dashboard?notice=username-taken');
+    }
+
     const oldProfilePicture = user.profilePicture;
     user.profileName = profileName;
+    user.username = profileName;
+    user.usernameNormalized = usernameNormalized;
     if (req.file) {
       user.profilePicture = `/profile-images/${req.file.filename}`;
     }
@@ -911,8 +936,61 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
         }
       }
     }
+    if (err && err.code === 11000 && err.keyPattern && err.keyPattern.usernameNormalized) {
+      return res.redirect('/dashboard?notice=username-taken');
+    }
     console.error('Profile Update Error:', err);
     return res.status(500).send('Unable to update profile.');
+  }
+});
+
+app.post('/account/delete', isAuthenticated, async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.session.user.email }).select('_id profilePicture');
+    if (!user) return res.redirect('/logout');
+
+    const activeParticipation = await InventorySystem.exists({
+      $or: [
+        { owner: user._id },
+        { members: { $elemMatch: { user: user._id, status: 'active' } } }
+      ]
+    });
+    if (activeParticipation) {
+      return res.redirect('/dashboard?notice=account-delete-blocked');
+    }
+
+    await InventorySystem.updateMany(
+      { members: { $elemMatch: { user: user._id, status: 'pending' } } },
+      { $pull: { members: { user: user._id, status: 'pending' } } }
+    );
+
+    const deletedUser = await User.deleteOne({ _id: user._id });
+    if (deletedUser.deletedCount !== 1) {
+      return res.status(409).send('Account could not be deleted. Please try again.');
+    }
+
+    if (user.profilePicture && user.profilePicture.startsWith('/profile-images/')) {
+      const profileImagePath = path.join(profileImageDirectory, path.basename(user.profilePicture));
+      try {
+        await fs.promises.unlink(profileImagePath);
+      } catch (err) {
+        if (err.code !== 'ENOENT') {
+          console.error('Unable to remove deleted account profile picture:', err);
+        }
+      }
+    }
+
+    return req.session.destroy((err) => {
+      if (err) {
+        console.error('Account Deletion Session Cleanup Error:', err);
+        return res.status(500).send('Account was deleted, but the session could not be closed. Please sign in again.');
+      }
+      res.clearCookie('connect.sid', { path: '/' });
+      return res.redirect('/login?deleted=success');
+    });
+  } catch (err) {
+    console.error('Account Deletion Error:', err);
+    return res.status(500).send('Unable to delete the account right now.');
   }
 });
 

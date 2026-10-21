@@ -772,6 +772,10 @@
       display: none;
     }
 
+    #accountDeleteConfirmModal {
+      z-index: 1200;
+    }
+
     .profile-modal-content {
       width: 100%;
       max-width: 420px;
@@ -962,8 +966,8 @@
       </div>
       <form action="/profile" method="POST" enctype="multipart/form-data">
         <div class="profile-modal-field">
-          <label for="profileName">Profile Name</label>
-          <input type="text" id="profileName" name="profileName" value="<%= profileName %>" minlength="1" maxlength="40" required>
+        <label for="profileName">Username</label>
+        <input type="text" id="profileName" name="profileName" value="<%= username %>" minlength="3" maxlength="30" pattern="[A-Za-z0-9][A-Za-z0-9_.-]{2,29}" title="Use 3-30 characters: letters, numbers, periods, underscores, or hyphens. Start with a letter or number." required>
         </div>
         <div class="profile-modal-field">
           <label for="profilePicture">Profile Picture</label>
@@ -979,9 +983,12 @@
         </div>
         <div class="profile-modal-actions">
           <button id="cancelProfileModal" class="profile-modal-cancel" type="button">Cancel</button>
-          <button class="profile-modal-save" type="submit">Save changes</button>
-        </div>
+        <button class="profile-modal-save" type="submit">Save changes</button>
+      </div>
       </form>
+      <div class="profile-modal-actions">
+        <button id="openAccountDeleteConfirm" class="confirmation-danger" type="button">Delete account</button>
+      </div>
     </div>
   </div>
 
@@ -1342,6 +1349,19 @@
     </div>
   </div>
 
+  <div id="accountDeleteConfirmModal" class="session-timeout-overlay" role="dialog" aria-modal="true" aria-labelledby="accountDeleteConfirmTitle" hidden>
+    <div class="confirmation-dialog">
+      <h2 id="accountDeleteConfirmTitle">Delete account?</h2>
+      <p>Your TrackGuard account and profile picture will be permanently deleted. You must leave all inventory systems and transfer or delete any systems you own first. Any pending join requests will be withdrawn. This action cannot be undone.</p>
+      <form action="/account/delete" method="POST">
+        <div class="confirmation-actions">
+          <button id="cancelAccountDelete" class="confirmation-cancel" type="button">Cancel</button>
+          <button class="confirmation-danger" type="submit">Yes, delete my account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="sessionTimeoutModal" class="session-timeout-overlay" role="dialog" aria-modal="true" aria-labelledby="sessionTimeoutTitle" hidden>
     <div class="session-timeout-dialog">
       <h2 id="sessionTimeoutTitle">Session expired</h2>
@@ -1408,6 +1428,9 @@
     const cancelProfileModal = document.getElementById("cancelProfileModal");
     const profilePictureInput = document.getElementById("profilePicture");
     const profilePreview = document.getElementById("profilePreview");
+    const openAccountDeleteConfirm = document.getElementById("openAccountDeleteConfirm");
+    const accountDeleteConfirmModal = document.getElementById("accountDeleteConfirmModal");
+    const cancelAccountDelete = document.getElementById("cancelAccountDelete");
     let profilePreviewUrl;
 
     function hideProfileModal() {
@@ -1421,11 +1444,23 @@
     });
     closeProfileModal.addEventListener("click", hideProfileModal);
     cancelProfileModal.addEventListener("click", hideProfileModal);
+    openAccountDeleteConfirm.addEventListener("click", () => {
+      accountDeleteConfirmModal.hidden = false;
+      cancelAccountDelete.focus();
+    });
+    cancelAccountDelete.addEventListener("click", () => {
+      accountDeleteConfirmModal.hidden = true;
+      openAccountDeleteConfirm.focus();
+    });
+    accountDeleteConfirmModal.addEventListener("click", (event) => {
+      if (event.target === accountDeleteConfirmModal) cancelAccountDelete.click();
+    });
     profileModal.addEventListener("click", (event) => {
       if (event.target === profileModal) hideProfileModal();
     });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !profileModal.hidden) hideProfileModal();
+      if (event.key === "Escape" && !accountDeleteConfirmModal.hidden) cancelAccountDelete.click();
     });
     profilePictureInput.addEventListener("change", () => {
       const [file] = profilePictureInput.files;

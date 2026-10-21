@@ -178,17 +178,6 @@
       text-align: center;
     }
 
-    .success-notice {
-      background-color: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #166534;
-      padding: 10px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
     .login-footer {
       text-align: center;
       margin-top: 24px;
@@ -251,10 +240,6 @@
       <% if (typeof error !== 'undefined' && error) { %>
         <div class="error-notice"><%= error %></div>
       <% } %>
-      <% if (typeof message !== 'undefined' && message) { %>
-        <div class="success-notice"><%= message %></div>
-      <% } %>
-
       <form action="/register" method="POST">
         <div class="form-group">
           <label for="username">Username</label>
@@ -316,7 +301,6 @@
           <p class="password-help">Use 6-12 characters, including a number, uppercase and lowercase letters, and a special character. No spaces.</p>
         </div>
 
-        <p class="password-help">A verification link will be sent to your email address before you can sign in.</p>
         <button type="submit" class="btn-submit">Sign Up</button>
 
         <div class="login-footer">

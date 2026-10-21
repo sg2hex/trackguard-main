@@ -88,39 +88,12 @@ const sendPasswordResetEmail = async (email, resetUrl) => {
   });
 };
 
-const sendVerificationEmail = async (email, verificationUrl) => {
-  if (!isMailConfigured()) {
-    throw new Error('Email verification is not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_FROM, and APP_BASE_URL.');
-  }
-
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
-  });
-
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM,
-    to: email,
-    subject: 'Verify your TrackGuard email address',
-    text: `Verify your email address to activate your TrackGuard account. This link expires in 24 hours:\n\n${verificationUrl}\n\nIf you did not create this account, you can ignore this email.`,
-    html: `<p>Verify your email address to activate your TrackGuard account. This link expires in 24 hours.</p><p><a href="${verificationUrl}">Verify your email address</a></p><p>If you did not create this account, you can ignore this email.</p>`
-  });
-};
-
 // --- Mongoose Schemas ---
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   emailNormalized: { type: String, unique: true, sparse: true },
   username: { type: String, trim: true },
   usernameNormalized: { type: String, unique: true, sparse: true },
-  emailVerified: { type: Boolean, default: true },
-  emailVerificationTokenHash: { type: String },
-  emailVerificationExpiresAt: { type: Date },
   password: { type: String, required: true },
   role: { type: String, default: 'Admin' },
   profileName: { type: String, trim: true, maxlength: 40 },
@@ -202,27 +175,17 @@ app.get('/', (req, res) => {
 app.get('/login', (req, res) => {
   res.render('login', {
     error: null,
-    success: req.query.verified === 'success'
-      ? 'Your email is verified. You can now sign in.'
-      : req.query.reset === 'success'
-        ? 'Your password has been reset. You can now sign in.'
-        : null
+    success: req.query.reset === 'success' ? 'Your password has been reset. You can now sign in.' : null
   });
 });
 
 // GET Register Page
 app.get('/register', (req, res) => {
-  const message = req.query.verification === 'sent'
-    ? 'Check your email for a verification link. You must verify your address before signing in.'
-    : req.query.verification === 'expired'
-      ? 'Your verification link expired. Please sign up again.'
-      : null;
-  res.render('register', { error: null, message });
+  res.render('register', { error: null });
 });
 
 // POST Register Handle
 app.post('/register', async (req, res) => {
-  let newUser;
   try {
     const { email, password } = req.body;
     const username = typeof req.body.username === 'string' ? req.body.username.trim() : '';
@@ -231,23 +194,16 @@ app.post('/register', async (req, res) => {
 
     const usernameError = getUsernameError(username);
     if (usernameError) {
-      return res.status(400).render('register', { error: usernameError, message: null });
+      return res.status(400).render('register', { error: usernameError });
     }
 
     if (!isValidEmail(cleanEmail)) {
-      return res.status(400).render('register', { error: 'Invalid Email Address.', message: null });
-    }
-
-    if (!isMailConfigured()) {
-      return res.status(503).render('register', {
-        error: 'Email verification is unavailable. Please contact the administrator.',
-        message: null
-      });
+      return res.status(400).render('register', { error: 'Invalid Email Address.' });
     }
 
     const passwordError = getPasswordError(password);
     if (passwordError) {
-      return res.status(400).render('register', { error: passwordError, message: null });
+      return res.status(400).render('register', { error: passwordError });
     }
 
     const existingUser = await User.findOne({
@@ -257,7 +213,7 @@ app.post('/register', async (req, res) => {
       ]
     });
     if (existingUser) {
-      return res.status(400).render('register', { error: 'Account with this email already exists.', message: null });
+      return res.status(400).render('register', { error: 'Account with this email already exists.' });
     }
 
     const existingUsername = await User.findOne({
@@ -267,80 +223,40 @@ app.post('/register', async (req, res) => {
       ]
     });
     if (existingUsername) {
-      return res.status(400).render('register', { error: 'This username is already taken.', message: null });
+      return res.status(400).render('register', { error: 'This username is already taken.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    newUser = new User({
+    const newUser = new User({
       email: cleanEmail,
       emailNormalized: cleanEmail,
       username,
       usernameNormalized,
-      emailVerified: false,
-      emailVerificationTokenHash: crypto.createHash('sha256').update(verificationToken).digest('hex'),
-      emailVerificationExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       password: hashedPassword,
       role: 'Admin'
     });
     await newUser.save();
 
-    const verificationUrl = new URL(`/verify-email/${verificationToken}`, process.env.APP_BASE_URL).toString();
-    await sendVerificationEmail(cleanEmail, verificationUrl);
-
-    return res.redirect('/register?verification=sent');
-  } catch (err) {
-    if (err && err.code === 11000) {
-      const duplicateUsername = err.keyPattern && err.keyPattern.usernameNormalized;
-      return res.status(400).render('register', {
-        error: duplicateUsername ? 'This username is already taken.' : 'Account with this email already exists.',
-        message: null
-      });
-    }
-    if (newUser && newUser._id) {
-      try {
-        await User.deleteOne({ _id: newUser._id, emailVerified: false });
-      } catch (cleanupError) {
-        console.error('Unable to remove unverified account after registration failure:', cleanupError);
-      }
-    }
-    console.error('Registration Error:', err);
-    res.status(500).render('register', { error: 'Failed to create account or send the verification email. Please try again.', message: null });
-  }
-});
-
-app.get('/verify-email/:token', async (req, res) => {
-  try {
-    const tokenHash = crypto.createHash('sha256').update(req.params.token).digest('hex');
-    const user = await User.findOne({ emailVerificationTokenHash: tokenHash });
-    if (!user || user.emailVerified) {
-      return res.status(400).render('login', { error: 'This verification link is invalid or has already been used.', success: null });
-    }
-
-    if (!user.emailVerificationExpiresAt || user.emailVerificationExpiresAt <= new Date()) {
-      await User.deleteOne({ _id: user._id, emailVerified: false });
-      return res.redirect('/register?verification=expired');
-    }
-
-    user.emailVerified = true;
-    user.emailVerificationTokenHash = undefined;
-    user.emailVerificationExpiresAt = undefined;
-    await user.save();
-
     try {
       await AuditLog.create({
         action: 'USER_REGISTERED',
-        performedBy: user.email,
-        details: `New admin account registered: ${user.email} (username: ${user.username})`
+        performedBy: cleanEmail,
+        details: `New admin account registered: ${cleanEmail} (username: ${username})`
       });
     } catch (auditError) {
       console.error('Unable to write account registration audit log:', auditError);
     }
 
-    return res.redirect('/login?verified=success');
+    return res.redirect('/login');
   } catch (err) {
-    console.error('Email Verification Error:', err);
-    return res.status(500).render('login', { error: 'Unable to verify your email address right now.', success: null });
+    if (err && err.code === 11000) {
+      const duplicateUsername = err.keyPattern && err.keyPattern.usernameNormalized;
+      return res.status(400).render('register', {
+        error: duplicateUsername ? 'This username is already taken.' : 'Account with this email already exists.'
+      });
+    }
+    console.error('Registration Error:', err);
+    res.status(500).render('register', { error: 'Failed to create account.' });
   }
 });
 
@@ -367,10 +283,6 @@ app.post('/login', loginLimiter, async (req, res) => {
       return res.status(401).render('login', { error: 'Invalid email or password.' });
     }
 
-    if (!user.emailVerified) {
-      return res.status(403).render('login', { error: 'Please verify your email address before signing in.', success: null });
-    }
-
     if (!isPasswordHash(user.password)) {
       user.password = await bcrypt.hash(password, 12);
       await user.save();
@@ -390,6 +302,21 @@ app.post('/login', loginLimiter, async (req, res) => {
     res.status(500).render('login', { error: 'Error processing login request.' });
   }
 });
+
+const logout = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Logout Error:', err);
+      return res.status(500).send('Unable to log out right now.');
+    }
+
+    res.clearCookie('connect.sid', { path: '/' });
+    return res.redirect('/login');
+  });
+};
+
+app.get('/logout', logout);
+app.post('/logout', logout);
 
 app.get('/forgot-password', (req, res) => {
   res.render('forgot-password', { error: null, message: null });

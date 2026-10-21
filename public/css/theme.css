@@ -149,6 +149,7 @@ html[data-theme="dark"] .profile-name,
 html[data-theme="dark"] .page-title,
 html[data-theme="dark"] .system-header h1,
 html[data-theme="dark"] .system-card h2,
+html[data-theme="dark"] .session-timeout-dialog h2,
 html[data-theme="dark"] .confirmation-dialog h2,
 html[data-theme="dark"] .profile-modal-header h2,
 html[data-theme="dark"] .login-body label,
@@ -160,6 +161,7 @@ html[data-theme="dark"] .about-copy h2 {
 html[data-theme="dark"] .nav-item,
 html[data-theme="dark"] .system-nav-link,
 html[data-theme="dark"] .system-card p,
+html[data-theme="dark"] .session-timeout-dialog p,
 html[data-theme="dark"] .about-copy,
 html[data-theme="dark"] .confirmation-dialog p,
 html[data-theme="dark"] .profile-modal-help,
@@ -326,6 +328,12 @@ html[data-theme="dark"] body .main-content :is(h1, h2, h3, label, th, strong) {
 
 html[data-theme="dark"] body .main-content :is(a, .back-link) {
   color: #93c5fd;
+}
+
+html[data-theme="dark"] body .main-content .system-card a,
+html[data-theme="dark"] body .main-content .system-card a:hover,
+html[data-theme="dark"] body .main-content .system-card a:focus-visible {
+  color: #ffffff !important;
 }
 
 html[data-theme="dark"] body .account-deletion-blockers {

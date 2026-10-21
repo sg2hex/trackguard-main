@@ -30,6 +30,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/Logo-images', express.static(path.join(__dirname, 'Logo-images')));
 const profileImageDirectory = path.join(__dirname, 'public', 'uploads', 'profiles');
 app.use('/profile-images', express.static(profileImageDirectory, {
   setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff')
@@ -119,6 +121,7 @@ const inventorySystemSchema = new mongoose.Schema({
 const assetSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, default: 'No description provided' },
+  quantity: { type: Number, required: true, min: 1, default: 1 },
   system: { type: mongoose.Schema.Types.ObjectId, ref: 'InventorySystem' },
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   status: { type: String, default: 'Active' },
@@ -720,11 +723,136 @@ app.post('/systems/:systemId/delete', isAuthenticated, async (req, res) => {
   }
 });
 
+app.post('/add-asset', isAuthenticated, async (req, res) => {
+  const { systemId } = req.body;
+  const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+  const description = typeof req.body.description === 'string' ? req.body.description.trim() : '';
+  const status = typeof req.body.status === 'string' ? req.body.status.trim() : '';
+  const quantity = Number(req.body.quantity);
+
+  if (!mongoose.isValidObjectId(systemId)) return res.status(400).send('Invalid inventory system.');
+  if (name.length < 1 || name.length > 120) return res.status(400).send('Asset name must be between 1 and 120 characters.');
+  if (description.length > 500) return res.status(400).send('Asset description must be 500 characters or fewer.');
+  if (status.length < 1 || status.length > 40) return res.status(400).send('Asset status must be between 1 and 40 characters.');
+  if (!Number.isSafeInteger(quantity) || quantity < 1) return res.status(400).send('Quantity must be a whole number greater than zero.');
+
+  try {
+    const owner = await User.findOne({ email: req.session.user.email }).select('_id');
+    if (!owner) return res.redirect('/logout');
+    const system = await InventorySystem.findOne({ _id: systemId, owner: owner._id });
+    if (!system) return res.status(404).send('Inventory system not found or access denied.');
+
+    const assignedTo = typeof req.body.assignedTo === 'string' && req.body.assignedTo
+      ? req.body.assignedTo
+      : null;
+    if (assignedTo && !system.members.some((member) =>
+      member.user.toString() === assignedTo && member.status === 'active')) {
+      return res.status(400).send('Assets can only be assigned to active staff in this system.');
+    }
+
+    const asset = await Asset.create({
+      name,
+      description: description || 'No description provided',
+      quantity,
+      status,
+      system: system._id,
+      assignedTo
+    });
+    await AuditLog.create({
+      system: system._id,
+      action: 'ASSET_CREATED',
+      performedBy: req.session.user.email,
+      details: `Added asset "${name}" (quantity: ${quantity}, ID: ${asset._id}).`
+    });
+    return res.redirect(`/dashboard?system=${system._id}`);
+  } catch (err) {
+    console.error('Asset Creation Error:', err);
+    return res.status(500).send('Unable to add asset.');
+  }
+});
+
+app.post('/update-asset', isAuthenticated, async (req, res) => {
+  const { systemId, assetId } = req.body;
+  const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+  const description = typeof req.body.description === 'string' ? req.body.description.trim() : '';
+  const status = typeof req.body.status === 'string' ? req.body.status.trim() : '';
+  const quantity = Number(req.body.quantity);
+
+  if (!mongoose.isValidObjectId(systemId) || !mongoose.isValidObjectId(assetId)) {
+    return res.status(400).send('Invalid inventory system or asset.');
+  }
+  if (name.length < 1 || name.length > 120) return res.status(400).send('Asset name must be between 1 and 120 characters.');
+  if (description.length > 500) return res.status(400).send('Asset description must be 500 characters or fewer.');
+  if (status.length < 1 || status.length > 40) return res.status(400).send('Asset status must be between 1 and 40 characters.');
+  if (!Number.isSafeInteger(quantity) || quantity < 1) return res.status(400).send('Quantity must be a whole number greater than zero.');
+
+  try {
+    const owner = await User.findOne({ email: req.session.user.email }).select('_id');
+    if (!owner) return res.redirect('/logout');
+    const system = await InventorySystem.findOne({ _id: systemId, owner: owner._id });
+    if (!system) return res.status(404).send('Inventory system not found or access denied.');
+    const asset = await Asset.findOne({ _id: assetId, system: system._id });
+    if (!asset) return res.status(404).send('Asset not found.');
+
+    const assignedTo = typeof req.body.assignedTo === 'string' && req.body.assignedTo
+      ? req.body.assignedTo
+      : null;
+    if (assignedTo && !system.members.some((member) =>
+      member.user.toString() === assignedTo && member.status === 'active')) {
+      return res.status(400).send('Assets can only be assigned to active staff in this system.');
+    }
+
+    asset.name = name;
+    asset.description = description || 'No description provided';
+    asset.quantity = quantity;
+    asset.status = status;
+    asset.assignedTo = assignedTo;
+    asset.updatedAt = new Date();
+    await asset.save();
+    await AuditLog.create({
+      system: system._id,
+      action: 'ASSET_UPDATED',
+      performedBy: req.session.user.email,
+      details: `Updated asset "${name}" (quantity: ${quantity}, ID: ${asset._id}).`
+    });
+    return res.redirect(`/dashboard?system=${system._id}`);
+  } catch (err) {
+    console.error('Asset Update Error:', err);
+    return res.status(500).send('Unable to update asset.');
+  }
+});
+
+app.post('/delete-asset', isAuthenticated, async (req, res) => {
+  const { systemId, assetId } = req.body;
+  if (!mongoose.isValidObjectId(systemId) || !mongoose.isValidObjectId(assetId)) {
+    return res.status(400).send('Invalid inventory system or asset.');
+  }
+
+  try {
+    const owner = await User.findOne({ email: req.session.user.email }).select('_id');
+    if (!owner) return res.redirect('/logout');
+    const system = await InventorySystem.findOne({ _id: systemId, owner: owner._id });
+    if (!system) return res.status(404).send('Inventory system not found or access denied.');
+    const asset = await Asset.findOneAndDelete({ _id: assetId, system: system._id });
+    if (!asset) return res.status(404).send('Asset not found.');
+    await AuditLog.create({
+      system: system._id,
+      action: 'ASSET_DELETED',
+      performedBy: req.session.user.email,
+      details: `Deleted asset "${asset.name}" (ID: ${asset._id}).`
+    });
+    return res.redirect(`/dashboard?system=${system._id}`);
+  } catch (err) {
+    console.error('Asset Deletion Error:', err);
+    return res.status(500).send('Unable to delete asset.');
+  }
+});
+
 // Render system lists by default, and a selected system only after checking membership.
 app.get('/dashboard', isAuthenticated, async (req, res) => {
   try {
     const user = await User.findOne({ email: req.session.user.email })
-      .select('_id profileName profilePicture');
+      .select('_id username profileName profilePicture');
     if (!user) return res.redirect('/logout');
 
     const createdSystems = await InventorySystem.find({ owner: user._id }).sort({ createdAt: -1 });

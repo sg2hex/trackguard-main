@@ -961,6 +961,15 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
       .slice(0, 2)
       .map((part) => part[0].toUpperCase())
       .join('');
+    const accountDeletionBlockers = [
+      ...createdSystems.map((system) => ({ type: 'owned', name: system.name })),
+      ...memberships.map((system) => ({
+        type: 'joined',
+        name: system.name,
+        leaveRequested: Boolean(system.members.find((member) =>
+          member.user.equals(user._id))?.leaveRequested)
+      }))
+    ];
 
     return res.render('dashboard', {
       createdSystems: createdSystemCards,
@@ -988,15 +997,14 @@ app.get('/dashboard', isAuthenticated, async (req, res) => {
       username: user.username || '',
       profilePicture: user.profilePicture || null,
       profileInitials: profileInitials || 'SA',
+      accountDeletionBlockers,
+      showUsernameTakenModal: req.query.notice === 'username-taken',
+      showAccountDeleteBlocked: req.query.notice === 'account-delete-blocked',
       notice: req.query.notice === 'requested'
         ? 'Join request sent. A system administrator must approve you before you can access the inventory.'
         : req.query.notice === 'leave-requested'
           ? 'Leave request sent. You will remain a staff member until the administrator reviews it.'
-          : req.query.notice === 'username-taken'
-            ? 'That username is already in use. Choose a different username.'
-            : req.query.notice === 'account-delete-blocked'
-              ? 'Leave all inventory systems and transfer or delete any systems you own before deleting your account.'
-              : null,
+          : null,
       showDeletedNotice: req.query.notice === 'deleted'
     });
   } catch (err) {

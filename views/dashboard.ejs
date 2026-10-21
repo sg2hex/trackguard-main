@@ -41,14 +41,23 @@
     /* Sidebar Layout */
     .sidebar {
       width: 240px;
+      z-index: 1001;
       background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(237, 242, 248, 0.97) 100%);
       border-right: 1px solid #e2e8f0;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 24px 16px;
+      padding: 24px 16px 72px;
       position: fixed;
+      inset: 0 auto 0 0;
       height: 100vh;
+      height: 100dvh;
+      transition: width 180ms ease, transform 220ms ease;
+    }
+
+    .sidebar-content {
+      min-height: 0;
+      overflow-y: auto;
     }
 
     .brand-header {
@@ -166,6 +175,124 @@
       background: none;
       width: 100%;
       text-align: left;
+    }
+
+    .nav-label {
+      min-width: 0;
+    }
+
+    .sidebar-toggle,
+    .sidebar-expand-toggle {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border: 1px solid #cbd5e1;
+      border-radius: 50%;
+      background: #f8fafc;
+      color: #334155;
+      box-shadow: 0 5px 16px rgba(15, 23, 42, 0.16);
+      cursor: pointer;
+      transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+    }
+
+    .sidebar-toggle {
+      position: absolute;
+      right: 12px;
+      bottom: 14px;
+    }
+
+    .sidebar-toggle svg,
+    .sidebar-expand-toggle svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sidebar-toggle:hover,
+    .sidebar-expand-toggle:hover {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .sidebar-expand-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 76px;
+      z-index: 1002;
+      display: none;
+    }
+
+    .sidebar-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      border: 0;
+      background: rgba(15, 23, 42, 0.52);
+    }
+
+    .sidebar-backdrop[hidden] {
+      display: none;
+    }
+
+    .sidebar.is-collapsed {
+      width: 76px;
+      padding-right: 10px;
+      padding-left: 10px;
+    }
+
+    .sidebar.is-collapsed .sidebar-toggle {
+      display: none;
+    }
+
+    .sidebar.is-collapsed .brand-header {
+      justify-content: center;
+      padding-left: 0;
+      font-size: 0;
+    }
+
+    .sidebar.is-collapsed .nav-item {
+      justify-content: center;
+      padding-right: 8px;
+      padding-left: 8px;
+    }
+
+    .sidebar.is-collapsed .nav-label,
+    .sidebar.is-collapsed .nav-divider,
+    .sidebar.is-collapsed .my-systems-chevron,
+    .sidebar.is-collapsed .system-search-input,
+    .sidebar.is-collapsed .system-nav-list,
+    .sidebar.is-collapsed .workspace-link,
+    .sidebar.is-collapsed .profile-text,
+    .sidebar.is-collapsed .btn-logout-link span {
+      display: none;
+    }
+
+    .sidebar.is-collapsed .user-profile,
+    .sidebar.is-collapsed .profile-info {
+      align-items: center;
+    }
+
+    .sidebar.is-collapsed .btn-logout-link {
+      font-size: 0;
+      align-self: center;
+    }
+
+    .sidebar.is-collapsed .profile-trigger {
+      display: flex;
+      justify-content: center;
+    }
+
+    body.sidebar-collapsed .main-content {
+      margin-left: 76px;
+    }
+
+    body.sidebar-collapsed .sidebar-expand-toggle {
+      display: grid;
     }
 
     .nav-icon {
@@ -332,6 +459,7 @@
 
     /* Main Content Area */
     .main-content {
+      min-width: 0;
       margin-left: 240px;
       flex: 1;
       padding: 32px 40px;
@@ -363,8 +491,22 @@
 
     .system-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
       gap: 16px;
+    }
+
+    .table-scroll {
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .asset-table {
+      min-width: 760px;
+    }
+
+    .audit-table {
+      min-width: 620px;
     }
 
     .search-controls {
@@ -561,8 +703,144 @@
     }
 
     @media (max-width: 900px) {
+      .main-content {
+        padding-right: 24px;
+        padding-left: 24px;
+      }
+
       .asset-edit-form {
         grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar-expand-toggle {
+        display: grid;
+      }
+
+      .sidebar.mobile-open ~ #sidebarExpandToggle {
+        display: none;
+      }
+
+      body {
+        display: block;
+      }
+
+      .sidebar {
+        width: min(300px, calc(100vw - 48px));
+        padding: 20px 14px 72px;
+        transform: translateX(-105%);
+        visibility: hidden;
+      }
+
+      body.mobile-navigation-open {
+        overflow: hidden;
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+        visibility: visible;
+      }
+
+      .sidebar.mobile-open .brand-header {
+        justify-content: flex-start;
+        padding-left: 4px;
+        font-size: 18px;
+      }
+
+      .sidebar.mobile-open .nav-item {
+        justify-content: flex-start;
+        padding: 10px 14px;
+      }
+
+      .sidebar-toggle {
+        right: 14px;
+        bottom: 14px;
+      }
+
+      .sidebar-expand-toggle {
+        left: 16px;
+        bottom: 20px;
+      }
+
+      body.sidebar-collapsed .main-content {
+        margin-left: 0;
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 24px 14px 88px;
+      }
+
+      .page-title,
+      .system-header h1 {
+        font-size: 21px;
+      }
+
+      .system-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .system-header > :last-child {
+        align-self: flex-start;
+      }
+
+      .system-list {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 16px;
+      }
+
+      .form-grid [style*="grid-column"] {
+        grid-column: auto !important;
+      }
+
+      .search-controls input,
+      .search-controls select {
+        flex: 1 1 100%;
+        min-width: 0;
+        width: 100%;
+      }
+
+      .pagination-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .pagination-controls {
+        flex-wrap: wrap;
+      }
+
+      .about-copy {
+        padding: 18px;
+        font-size: 14px;
+      }
+
+      .profile-modal,
+      .session-timeout-overlay {
+        align-items: flex-end;
+        padding: 12px;
+      }
+
+      .profile-modal-content,
+      .confirmation-dialog,
+      .session-timeout-dialog {
+        max-height: calc(100dvh - 24px);
+        overflow-y: auto;
+        padding: 22px 18px;
+      }
+
+      .theme-toggle {
+        right: 16px;
+        bottom: 16px;
+        width: 48px;
+        height: 48px;
       }
     }
 
@@ -847,6 +1125,17 @@
       z-index: 1200;
     }
 
+    #usernameTakenModal {
+      z-index: 1300;
+    }
+
+    .account-deletion-blockers {
+      margin: -8px 0 22px;
+      padding-left: 22px;
+      color: #334155;
+      line-height: 1.6;
+    }
+
     .profile-modal-content {
       width: 100%;
       max-width: 420px;
@@ -958,24 +1247,24 @@
 <body>
 
   <!-- Left Sidebar Navigation -->
-  <div class="sidebar">
-    <div>
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="sidebar-content">
       <div class="brand-header">
         <div class="brand-icon-wrapper">
           <img src="/Logo-images/SquareLogo.jpg" alt="">
         </div>
-        TrackGuard
+        <span class="nav-label">TrackGuard</span>
       </div>
 
       <div class="nav-menu">
-        <button class="nav-item" onclick="switchTab('createTab', this)">
+        <button class="nav-item" title="Create inventory" aria-label="Create inventory" onclick="switchTab('createTab', this)">
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-          Create inventory
+          <span class="nav-label">Create inventory</span>
         </button>
-        <button id="mySystemsToggle" class="nav-item" type="button" aria-expanded="false" aria-controls="mySystemsList" onclick="switchTab('createdTab', this); toggleMySystemsList()">
+        <button id="mySystemsToggle" class="nav-item" title="My inventory systems" aria-label="My inventory systems" type="button" aria-expanded="false" aria-controls="mySystemsList" onclick="switchTab('createdTab', this); toggleMySystemsList()">
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3z"/><path d="M3 7V5h7l2 2"/></svg>
-          My inventory systems
-          <span aria-hidden="true" style="margin-left:auto;">⌄</span>
+          <span class="nav-label">My inventory systems</span>
+          <span class="my-systems-chevron" aria-hidden="true" style="margin-left:auto;">⌄</span>
         </button>
         <div id="mySystemsList" class="system-nav-list" hidden>
           <% if (createdSystems.length) { %>
@@ -989,22 +1278,22 @@
           <% } %>
         </div>
         <hr class="nav-divider">
-        <button class="nav-item" onclick="switchTab('joinTab', this)">
+        <button class="nav-item" title="Join inventory system" aria-label="Join inventory system" onclick="switchTab('joinTab', this)">
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8 2 2-2 2 2 2-3 3-2-2-3 3"/></svg>
-          Join inventory system
+          <span class="nav-label">Join inventory system</span>
         </button>
-        <button class="nav-item" onclick="switchTab('joinedTab', this)">
+        <button class="nav-item" title="Joined asset systems" aria-label="Joined asset systems" onclick="switchTab('joinedTab', this)">
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2zM16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1"/></svg>
-          Joined asset systems
+          <span class="nav-label">Joined asset systems</span>
         </button>
         <hr class="nav-divider">
-        <button class="nav-item" onclick="switchTab('contactTab', this)">
+        <button class="nav-item" title="Contact Us" aria-label="Contact Us" onclick="switchTab('contactTab', this)">
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="m4 7 8 6 8-6"/></svg>
-          Contact Us
+          <span class="nav-label">Contact Us</span>
         </button>
-        <button class="nav-item <%= selectedSystem ? '' : 'active' %>" onclick="switchTab('aboutTab', this)">
+        <button class="nav-item <%= selectedSystem ? '' : 'active' %>" title="About Us" aria-label="About Us" onclick="switchTab('aboutTab', this)">
           <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
-          About Us
+          <span class="nav-label">About Us</span>
         </button>
       </div>
       <% if (selectedSystem) { %>
@@ -1014,7 +1303,7 @@
 
     <!-- Bottom User Profile Footer -->
     <div class="user-profile">
-      <button id="openProfileModal" class="profile-trigger" type="button" aria-haspopup="dialog" aria-controls="profileModal">
+      <button id="openProfileModal" class="profile-trigger" type="button" aria-label="Edit profile" aria-haspopup="dialog" aria-controls="profileModal">
         <span class="profile-info">
           <span class="avatar">
             <% if (profilePicture) { %>
@@ -1028,9 +1317,16 @@
           </span>
         </span>
       </button>
-      <button id="openLogoutConfirm" class="btn-logout-link" type="button">Logout</button>
+      <button id="openLogoutConfirm" class="btn-logout-link" type="button" aria-label="Logout"><span>Logout</span></button>
     </div>
-  </div>
+    <button id="sidebarCollapseToggle" class="sidebar-toggle" type="button" aria-label="Collapse navigation" title="Collapse navigation" aria-controls="sidebar" aria-expanded="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+    </button>
+  </aside>
+  <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="Close navigation" hidden></button>
+  <button id="sidebarExpandToggle" class="sidebar-expand-toggle" type="button" aria-label="Open navigation" title="Open navigation" aria-controls="sidebar" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>
+  </button>
 
   <div id="profileModal" class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" hidden>
     <div class="profile-modal-content">
@@ -1141,7 +1437,8 @@
               </select>
             <% } %>
           </div>
-          <table>
+          <div class="table-scroll">
+          <table class="asset-table">
               <thead>
                 <tr>
                   <th>System ID</th>
@@ -1229,7 +1526,8 @@
                   </tr>
                 <% } %>
               </tbody>
-            </table>
+          </table>
+          </div>
             <div id="assetSearchEmpty" class="search-empty">No assets match your search.</div>
             <div class="pagination-bar">
               <div id="paginationSummary">Showing 0 of 0 assets</div>
@@ -1242,7 +1540,8 @@
           <section class="workspace-section">
             <h2>Audit Trail</h2>
             <div class="card">
-              <table>
+              <div class="table-scroll">
+              <table class="audit-table">
                 <thead><tr><th>Action</th><th>Performed By</th><th>Details</th><th>Timestamp</th></tr></thead>
                 <tbody id="auditTableBody">
                   <% if (auditLogs.length) { %>
@@ -1254,6 +1553,7 @@
                   <% } %>
                 </tbody>
               </table>
+              </div>
               <div class="pagination-bar">
                 <div id="auditPaginationSummary">Showing 0 of 0 audit logs</div>
                 <div class="pagination-controls" id="auditPaginationButtons"></div>
@@ -1467,16 +1767,46 @@
     </div>
   </div>
 
-  <div id="accountDeleteConfirmModal" class="session-timeout-overlay" role="dialog" aria-modal="true" aria-labelledby="accountDeleteConfirmTitle" hidden>
+  <div id="accountDeleteConfirmModal" class="session-timeout-overlay" role="dialog" aria-modal="true" aria-labelledby="accountDeleteConfirmTitle" <%= showAccountDeleteBlocked ? '' : 'hidden' %>>
     <div class="confirmation-dialog">
       <h2 id="accountDeleteConfirmTitle">Delete account?</h2>
-      <p>Your TrackGuard account and profile picture will be permanently deleted. You must leave all inventory systems and transfer or delete any systems you own first. Any pending join requests will be withdrawn. This action cannot be undone.</p>
-      <form action="/account/delete" method="POST">
+      <% if (accountDeletionBlockers.length) { %>
+        <p>Before deleting your account, resolve these items:</p>
+        <ul class="account-deletion-blockers">
+          <% accountDeletionBlockers.forEach((blocker) => { %>
+            <li>
+              <% if (blocker.type === 'owned') { %>
+                Delete the inventory system "<%= blocker.name %>" that you own.
+              <% } else if (blocker.leaveRequested) { %>
+                Wait for the administrator to approve your request to leave "<%= blocker.name %>".
+              <% } else { %>
+                Request to leave "<%= blocker.name %>" and wait for the administrator to approve it.
+              <% } %>
+            </li>
+          <% }) %>
+        </ul>
         <div class="confirmation-actions">
-          <button id="cancelAccountDelete" class="confirmation-cancel" type="button">Cancel</button>
-          <button class="confirmation-danger" type="submit">Yes, delete my account</button>
+          <button id="cancelAccountDelete" class="confirmation-cancel" type="button">Close</button>
         </div>
-      </form>
+      <% } else { %>
+        <p>Your account and profile picture will be permanently deleted. Any pending join requests will be withdrawn. This action cannot be undone.</p>
+        <form action="/account/delete" method="POST">
+          <div class="confirmation-actions">
+            <button id="cancelAccountDelete" class="confirmation-cancel" type="button">Cancel</button>
+            <button class="confirmation-danger" type="submit">Yes, delete my account</button>
+          </div>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+  <div id="usernameTakenModal" class="session-timeout-overlay" role="alertdialog" aria-modal="true" aria-labelledby="usernameTakenTitle" <%= showUsernameTakenModal ? '' : 'hidden' %>>
+    <div class="confirmation-dialog">
+      <h2 id="usernameTakenTitle">Username already exists</h2>
+      <p>That username is already in use. Please choose another username.</p>
+      <div class="confirmation-actions">
+        <button id="dismissUsernameTaken" class="confirmation-cancel" type="button">OK</button>
+      </div>
     </div>
   </div>
 
@@ -1489,6 +1819,102 @@
   </div>
 
   <script>
+    const sidebar = document.getElementById("sidebar");
+    const sidebarCollapseToggle = document.getElementById("sidebarCollapseToggle");
+    const sidebarExpandToggle = document.getElementById("sidebarExpandToggle");
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    const mobileNavigationQuery = window.matchMedia("(max-width: 700px)");
+
+    function closeMobileNavigation() {
+      sidebar.classList.remove("mobile-open");
+      sidebarBackdrop.hidden = true;
+      document.body.classList.remove("mobile-navigation-open");
+      sidebarCollapseToggle.setAttribute("aria-expanded", "false");
+      sidebarExpandToggle.setAttribute("aria-expanded", "false");
+    }
+
+    function openMobileNavigation() {
+      sidebar.classList.add("mobile-open");
+      sidebarBackdrop.hidden = false;
+      document.body.classList.add("mobile-navigation-open");
+      sidebarCollapseToggle.setAttribute("aria-expanded", "true");
+      sidebarExpandToggle.setAttribute("aria-expanded", "true");
+      sidebarCollapseToggle.focus();
+    }
+
+    function applySidebarLayout() {
+      if (mobileNavigationQuery.matches) {
+        sidebar.classList.remove("is-collapsed");
+        document.body.classList.remove("sidebar-collapsed");
+        closeMobileNavigation();
+        sidebarCollapseToggle.setAttribute("aria-label", "Close navigation");
+        sidebarCollapseToggle.title = "Close navigation";
+        sidebarExpandToggle.setAttribute("aria-label", "Open navigation");
+        sidebarExpandToggle.title = "Open navigation";
+        return;
+      }
+
+      closeMobileNavigation();
+      let isCollapsed = false;
+      try {
+        isCollapsed = localStorage.getItem("trackguard-sidebar-collapsed") === "true";
+      } catch (error) {
+        console.error("Unable to restore navigation preference:", error);
+      }
+      sidebar.classList.toggle("is-collapsed", isCollapsed);
+      document.body.classList.toggle("sidebar-collapsed", isCollapsed);
+      sidebarCollapseToggle.setAttribute("aria-expanded", String(!isCollapsed));
+      sidebarCollapseToggle.setAttribute(
+        "aria-label",
+        isCollapsed ? "Navigation collapsed" : "Collapse navigation"
+      );
+      sidebarCollapseToggle.title = isCollapsed ? "Navigation collapsed" : "Collapse navigation";
+      sidebarExpandToggle.setAttribute("aria-expanded", String(!isCollapsed));
+    }
+
+    function toggleDesktopNavigation(shouldCollapse) {
+      sidebar.classList.toggle("is-collapsed", shouldCollapse);
+      document.body.classList.toggle("sidebar-collapsed", shouldCollapse);
+      sidebarCollapseToggle.setAttribute("aria-expanded", String(!shouldCollapse));
+      sidebarCollapseToggle.setAttribute(
+        "aria-label",
+        shouldCollapse ? "Navigation collapsed" : "Collapse navigation"
+      );
+      sidebarCollapseToggle.title = shouldCollapse ? "Navigation collapsed" : "Collapse navigation";
+      sidebarExpandToggle.setAttribute("aria-expanded", String(!shouldCollapse));
+      try {
+        localStorage.setItem("trackguard-sidebar-collapsed", String(shouldCollapse));
+      } catch (error) {
+        console.error("Unable to save navigation preference:", error);
+      }
+    }
+
+    sidebarCollapseToggle.addEventListener("click", () => {
+      if (mobileNavigationQuery.matches) {
+        closeMobileNavigation();
+        sidebarExpandToggle.focus();
+        return;
+      }
+      toggleDesktopNavigation(!sidebar.classList.contains("is-collapsed"));
+    });
+    sidebarExpandToggle.addEventListener("click", () => {
+      if (mobileNavigationQuery.matches) {
+        openMobileNavigation();
+        return;
+      }
+      toggleDesktopNavigation(false);
+      sidebarCollapseToggle.focus();
+    });
+    sidebarBackdrop.addEventListener("click", closeMobileNavigation);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && mobileNavigationQuery.matches && sidebar.classList.contains("mobile-open")) {
+        closeMobileNavigation();
+        sidebarExpandToggle.focus();
+      }
+    });
+    window.addEventListener("resize", applySidebarLayout);
+    applySidebarLayout();
+
     const systemDeletedModal = document.getElementById("systemDeletedModal");
     const dismissSystemDeleted = document.getElementById("dismissSystemDeleted");
     if (!systemDeletedModal.hidden) dismissSystemDeleted.focus();
@@ -1549,7 +1975,12 @@
     const openAccountDeleteConfirm = document.getElementById("openAccountDeleteConfirm");
     const accountDeleteConfirmModal = document.getElementById("accountDeleteConfirmModal");
     const cancelAccountDelete = document.getElementById("cancelAccountDelete");
+    const usernameTakenModal = document.getElementById("usernameTakenModal");
+    const dismissUsernameTaken = document.getElementById("dismissUsernameTaken");
     let profilePreviewUrl;
+
+    if (!usernameTakenModal.hidden) dismissUsernameTaken.focus();
+    if (!accountDeleteConfirmModal.hidden) cancelAccountDelete.focus();
 
     document.querySelectorAll(".asset-assignee-select").forEach((select) => {
       const avatar = select.parentElement.querySelector(".assigned-staff-avatar");
@@ -1587,7 +2018,12 @@
     });
     cancelAccountDelete.addEventListener("click", () => {
       accountDeleteConfirmModal.hidden = true;
-      openAccountDeleteConfirm.focus();
+      (profileModal.hidden ? openProfileModal : openAccountDeleteConfirm).focus();
+    });
+    dismissUsernameTaken.addEventListener("click", () => {
+      usernameTakenModal.hidden = true;
+      window.history.replaceState(null, "", window.location.pathname);
+      openProfileModal.focus();
     });
     accountDeleteConfirmModal.addEventListener("click", (event) => {
       if (event.target === accountDeleteConfirmModal) cancelAccountDelete.click();
@@ -1598,6 +2034,7 @@
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !profileModal.hidden) hideProfileModal();
       if (event.key === "Escape" && !accountDeleteConfirmModal.hidden) cancelAccountDelete.click();
+      if (event.key === "Escape" && !usernameTakenModal.hidden) dismissUsernameTaken.click();
     });
     profilePictureInput.addEventListener("change", () => {
       const [file] = profilePictureInput.files;
@@ -1622,6 +2059,7 @@
       document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
       targetTab.classList.add('active');
       element.classList.add('active');
+      if (mobileNavigationQuery.matches) closeMobileNavigation();
     }
 
     function toggleMySystemsList() {

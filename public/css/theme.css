@@ -119,6 +119,31 @@ html[data-theme="dark"] .sidebar {
   background: linear-gradient(180deg, #111b2b 0%, #0e1726 100%);
 }
 
+html[data-theme="dark"] body .workspace-link {
+  border: 1px solid #2c4668;
+  background: #182a42 !important;
+  color: #bfdbfe !important;
+}
+
+html[data-theme="dark"] body .workspace-link:hover,
+html[data-theme="dark"] body .workspace-link:focus-visible {
+  background: #223a59 !important;
+  color: #dbeafe !important;
+}
+
+html[data-theme="dark"] body .sidebar-toggle,
+html[data-theme="dark"] body .sidebar-expand-toggle {
+  border-color: #3a4b63;
+  background: #172235;
+  color: #dbeafe;
+}
+
+html[data-theme="dark"] body .sidebar-toggle:hover,
+html[data-theme="dark"] body .sidebar-expand-toggle:hover {
+  background: #243b5b;
+  color: #ffffff;
+}
+
 html[data-theme="dark"] .brand-header,
 html[data-theme="dark"] .profile-name,
 html[data-theme="dark"] .page-title,
@@ -274,6 +299,49 @@ html[data-theme="dark"] .login-footer,
 html[data-theme="dark"] .profile-modal-actions,
 html[data-theme="dark"] .request-list {
   border-color: #29384c;
+}
+
+html[data-theme="dark"] body .main-content :is(
+  h1,
+  h2,
+  h3,
+  p,
+  li,
+  label,
+  th,
+  td,
+  .form-note,
+  .pagination-bar,
+  .empty-state,
+  .request-row,
+  .about-copy,
+  .account-deletion-blockers
+) {
+  color: #dbe5f2 !important;
+}
+
+html[data-theme="dark"] body .main-content :is(h1, h2, h3, label, th, strong) {
+  color: #f1f5f9 !important;
+}
+
+html[data-theme="dark"] body .main-content :is(a, .back-link) {
+  color: #93c5fd;
+}
+
+html[data-theme="dark"] body .account-deletion-blockers {
+  color: #dbe5f2 !important;
+}
+
+html[data-theme="dark"] body .main-content .nav-item.active,
+html[data-theme="dark"] body .main-content .system-nav-link.active,
+html[data-theme="dark"] body .main-content .assigned-staff-avatar,
+html[data-theme="dark"] body .main-content .status-badge,
+html[data-theme="dark"] body .main-content .tag-badge {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] body .notice-banner {
+  color: #bfdbfe !important;
 }
 
 @media (max-width: 600px) {

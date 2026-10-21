@@ -991,8 +991,9 @@ app.post('/profile', isAuthenticated, (req, res, next) => {
 // Start Server
 const PORT = process.env.PORT || 5000;
 const BASE_URL = process.env.APP_BASE_URL || `http://localhost:${PORT}`;
+const DATABASE_NAME = process.env.MONGODB_DB_NAME || 'trackguard';
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, { dbName: DATABASE_NAME })
   .then(() => {
     console.log('Connected to MongoDB Atlas');
     app.listen(PORT, () => {

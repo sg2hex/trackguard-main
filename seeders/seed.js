@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/trackguard';
+const DATABASE_NAME = process.env.MONGODB_DB_NAME || 'trackguard';
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
@@ -32,7 +33,7 @@ const AuditLog = mongoose.models.AuditLog || mongoose.model('AuditLog', auditSch
 
 const seedDatabase = async () => {
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI, { dbName: DATABASE_NAME });
     console.log('Connected to MongoDB Atlas for seeding...');
 
     await User.deleteMany({});
